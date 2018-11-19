@@ -1,2 +1,3 @@
 # stat243_project
-This repository contains all the files of the final project for the Stat243 course Project Collaborators: Bunker, JD; Bui, Anh; Lavrentiadis, Grigorios
+This repository contains all the files for the final project of the Stat243, Fall 2018.
+Project Collaborators: Bunker, JD; Bui, Anh; Lavrentiadis, Grigorios
