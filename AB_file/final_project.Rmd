@@ -1,0 +1,55 @@
+---
+title: "Final project"
+author: "Anh Mai Bui"
+date: "November 21, 2018"
+output: pdf_document
+---
+
+**Algorithm**:
+
+Inputs: w ~ Unif(0,1) \newline
+$l_{k}(x^{*}) = log(g_{l}(x^{*}))$ \newline
+$u_{k}(x^{*}) = log(g_{u}(x^{*}))$ \newline
+$h(x^{*}) = log(g(x^{*}))$ \newline
+$s_{k}(x) = exp(u_{k}(x))/\left(\int_{D} u_{k}(x') \; dx'\right) = g_{u}(x)/\left(\int_{D} g_{u}(x') \; dx'\right)$ \newline
+
+**Step 1**:
+If $w < exp(l_{k}(x^{*}) - u_{k}(x^{*}))$ \newline
+- Accept $x^{*}$ when the condition is satisfied. Draw another $x^{*}$ from $s_{k}(x)$ \newline
+- Reject $x^{*}$ when the condition is not satisfied.
+
+**Step 2**: These two procedures can be done in parallel.
+- Evaluate $h(x^{*}), h'(x^{*})$. Update $l_{k}(x), u_{k}(x), s_{k}(x)$, which are now include $x^{*}$ as an element.
+- Accept $x^{*}$ if $w < exp(h(x^{*}) - u_{k}(x^{*}))$. Otherwise, reject.
+
+Example: Start with g(x) = 3*N(0,1). \newline
+g(x) = $\frac{3}{{\sqrt {2\pi } }}e^{{{ - \left( {x} \right)^2 } \mathord{\left/ {\vphantom {{ - \left( {x} \right)^2 } {2}}} \right. \kern-\nulldelimiterspace} {2}}}$
+
+```{r}
+bounds <- c("-Inf", "Inf")
+g <- function(x) {
+  (3/sqrt(2*pi))*exp(-(x^2)/2)
+}
+
+c <- integrate(g, lower = bounds[1], upper = bounds[2])$value
+
+s <- function(x) {
+  1/c*(3/sqrt(2*pi))*exp(-(x^2)/2)
+}
+
+#Check s integrates to 1
+integrate(s, lower = bounds[1], upper = bounds[2])$value
+
+#Draw x* from s
+library(MCMCpack)
+
+samples = MCMCmetrop1R(fun=s, mcmc = 100, theta.init=1,V=as.matrix(1))
+
+```
+
+```{r}
+x <- runif(50,-5, 5)
+f <- sapply(x,g)
+plot(x,f)
+```
+
