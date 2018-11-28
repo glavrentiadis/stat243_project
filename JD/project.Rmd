@@ -1,0 +1,419 @@
+---
+title: "project"
+author: "JD Bunker"
+date: "11/25/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Algorithm**:
+
+Inputs: w ~ Unif(0,1) \newline
+$l_{k}(x^{*}) = log(g_{l}(x^{*}))$ \newline
+$u_{k}(x^{*}) = log(g_{u}(x^{*}))$ \newline
+$h(x^{*}) = log(g(x^{*}))$ \newline
+$s_{k}(x) = exp(u_{k}(x))/\left(\int_{D} u_{k}(x') \; dx'\right) = g_{u}(x)/\left(\int_{D} g_{u}(x') \; dx'\right)$ \newline
+
+The lower bound of h(x) is $l_{k}(x)$, which connects the values of function h on abscissaes.
+The function of $l_{k}(x)$ between two consecutive abscissaes $x_{j}$ and $x_{j+1}$ is
+  $l_{k}(x) = \frac{(x_{j+1} - x)h(x_{j}) + (x - x_{j})h(x_{j+1})}{x_{j+1} - x_{j}}$ 
+
+Let T be the domain of abscissaes, H be the domain of the realized function H at abscissaes, H_prime be the domain of the realized first derivative of function H at abscissaes.
+
+$h'(x) = \frac{dlog(g(x))}{dx} = \frac{g'(x)}{g(x)}$
+
+**Step 1**: If $w < exp(l_{k}(x^{*}) - u_{k}(x^{*}))$ \newline
+- Accept $x^{*}$ when the condition is satisfied. Draw another $x^{*}$ from $s_{k}(x)$ \newline
+- Reject $x^{*}$ when the condition is not satisfied.
+
+**Step 2**: These two procedures can be done in parallel. \newline
+- Evaluate $h(x^{*}), h'(x^{*})$. Update $l_{k}(x), u_{k}(x), s_{k}(x)$, which are now include $x^{*}$ as an element.
+- Accept $x^{*}$ if $w < exp(h(x^{*}) - u_{k}(x^{*}))$. Otherwise, reject.
+
+Example: Start with g(x) = 3*N(0,1). \newline
+g(x) = $\frac{3}{{\sqrt {2\pi } }}e^{{{ - \left( {x} \right)^2 } \mathord{\left/ {\vphantom {{ - \left( {x} \right)^2 } {2}}} \right. \kern-\nulldelimiterspace} {2}}}$
+```{r, eval=TRUE}
+#Create 
+#install.packages("Ryacas")
+#install.packages("Deriv")
+#install.packages("distr")
+library(Ryacas)
+library(Deriv)
+library(distr)
+
+#######################################
+#User supplied parameters
+
+#User supplied g-function
+g <- function(x){
+  sigma <- 1
+  mu <- 0
+  val <- 3/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+}
+
+#Examples for function g
+g(0)
+g(1)
+g(-1)
+
+#Number of starting points
+k_start=2 
+
+#Bounds for x
+x.Bound=c(-Inf,Inf) 
+
+
+#######################################
+#Test default deriv() function + Simplify() function
+sigma <- 1
+mu <- 0
+
+x <- Sym("x")
+f <- 1/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+#print(f)
+dx <- eval(deriv(g(x),Sym("x"))); #Derivative of f in terms of x
+print(dx)
+dxSimp <- Ryacas::Simplify(deriv(g(x),"x")) #Simplified version of derivative (collapse terms)...
+print(dxSimp)
+
+s = deriv(~a^2,'a',func = T) #Create function s(a)=a^2
+#s(5) #5^2
+```
+
+
+
+
+
+
+```{r, eval=TRUE}
+#######################################
+#Internally created functions
+g_d <- function(X){
+  as.numeric(
+    eval(Deriv(~g(X),"X"))
+    )
+}
+g_d(c(1,2))
+
+#h function
+h <- function(x){
+    log(g(x))
+}
+
+#Examples for function h
+#h(1)
+#h(-1)
+#h(0)
+
+#h' function
+h_d <- function(X){
+    #print("X:")
+    #print(X)
+  
+    #print("Original:")
+    #print(h(X))
+  
+    #print("Derivative - deriv()")
+    #print(deriv(log(g(x)),"x"))
+  
+    #print("Derivative - Deriv() Unevaluated")
+    #print(Deriv(~log(g(X)),"X"))
+    
+    #print("Derivative - Deriv() Evaluated")
+    #print(eval(fun))
+    #deriv(log(g(x),1))
+  
+  
+    #return(as.numeric(eval(Deriv(~log(g(X)),"X"))))
+  return(as.numeric(1/g(X)*eval(Deriv(~g(X),"X"))))
+}
+
+#Examples for function h'...
+#h_d(0)
+#h_d(-0.5)
+```
+
+
+```{r, eval=TRUE}
+#Initial function (main)
+Initial <- function(k_start,x.Bound,g,QC=FALSE){
+  #print(all.equal(x.Bound,c(-Inf,Inf)))
+    upBd <- x.Bound[length(x.Bound)]
+    lowBd <- x.Bound[1]
+    if (upBd != Inf){
+      upBd1 <- upBd
+    } else{
+      upBd1 <- NULL
+    }
+    if (lowBd != -Inf){
+      lowBd1 <- lowBd
+    } else{
+      lowBd1 <- NULL
+    }
+    
+    if (QC==TRUE){
+      print("Lower & upper bound pairs")
+      print(lowBd)
+      print(upBd)
+      
+      print(lowBd1)
+      print(upBd1)
+    }
+  #if (all.equal(x.Bound,c(-Inf,Inf)) == TRUE){
+    dist <- AbscontDistribution(d=g,
+                                up=upBd,low=lowBd,
+                                up1=upBd1,low1=lowBd1
+                                #,withStand=TRUE
+                                ) #Create distr corresponding to density g
+    rdist <- r(dist)
+    samp <- rdist(100)
+    
+    if (QC==TRUE){
+      print(h_d(samp))
+      #Sample mean / variance
+      print("Min & max of derivative of h")
+      #print(mean(samp))
+      #print(var(samp))
+      print(min(h_d(samp)))
+      print(max(h_d(samp)))
+      #print("yo!")
+    }
+    
+    lowPt <- lowBd+.Machine$double.eps
+    if (lowBd == -Inf) {
+      lowPt <- samp[h_d(samp) > 0][1]
+    }
+    upPt <- upBd-.Machine$double.eps
+    if (upBd == Inf){
+      upPt <- samp[h_d(samp) < 0][1]
+    }
+    medPts <- NULL
+    if (k_start-2 > 0) {
+      medPts <- c(lowPt+seq_along(1:(k_start-2))*(upPt-lowPt)/(k_start-1))
+    }
+    
+    #k_points <- 5
+    #seq_along(1:(k_points-2))
+    
+    X <- c(lowPt,medPts,upPt)
+    #print(X) #Selected points
+    
+    if (QC==TRUE){
+      print("Sample:")
+      print(samp)
+      print(" ")
+      
+      print("Lower and upper points in X_k:")
+      print(lowPt)
+      print(upPt)
+      print(" ")
+      
+      print("Remaining points in X_k:")
+      print(medPts)
+      #print(c(lowPt+seq_along(1:(k_start-2))*(upPt-lowPt)/(k_start-1)))
+      #print(c(seq_along(1:(k_start-2))))
+      #print(seq_along(1:0))
+      
+      print("Starting X:")
+      print(X)
+      
+      print("samp[samp>lowPt & samp<upPt]:")
+      print(samp[samp>lowPt & samp<upPt])
+      print("k_start-2")
+      print(k_start-2)
+      print("samp[samp>lowPt & samp<upPt][k_start-2]")
+      print(samp[samp>lowPt & samp<upPt][k_start-2])
+      print("samp[samp>lowPt]")
+      print(samp[samp>lowPt])
+      print("samp[samp<upPt]")
+      print(samp[samp<upPt])
+    }
+    
+    H <- h(X)
+    H_d <- h_d(X)
+  #}  else{
+  #  print("heyo!")
+  #}
+  return(list(X,H,H_d))
+}
+```
+
+
+
+#Normal distribution (2 starting pts)
+```{r,eval=TRUE}
+  #User supplied g-function
+g <- function(x){
+  sigma <- 1
+  mu <- 0
+  val <- 3/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+}
+Initial(k_start=2,x.Bound=c(-Inf,Inf),g
+        #,QC=TRUE
+        )
+```
+
+#Exponential distribution (2 starting pts)
+```{r,eval=TRUE}
+g <- function(x){
+  lam <- 1
+  value <- lam*exp(-lam*x)
+}
+#a <- AbscontDistribution(d=g,low=0,low1=0)
+#print(g(1))
+Initial(k_start=2,x.Bound=c(0,Inf),g
+        #,QC=TRUE
+        )
+```
+
+#Normal distribution (5 starting pts)
+```{r,eval=TRUE}
+  #User supplied g-function
+g <- function(x){
+  sigma <- 1
+  mu <- 0
+  val <- 3/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+}
+Initial(k_start=5,x.Bound=c(-Inf,Inf),g
+        #,QC=TRUE
+        )
+```
+
+
+#Gamma distribution (5 starting pts)
+```{r,eval=TRUE}
+#User supplied g-function
+g <- function(x){
+  alpha <- 1
+  beta <- 1
+  val <- beta^alpha/gamma(alpha)*x^(alpha-1)*exp(-beta*x)
+}
+test <- g(0.5)
+Initial(k_start=5,x.Bound=c(0,Inf),g
+        #,QC=TRUE
+        )
+```
+
+#Beta distribution (10 starting pts)
+```{r,eval=TRUE}
+  #User supplied g-function
+g <- function(x){
+  alpha <- 1
+  beta <- 3
+  val <- x^(alpha-1)*(1-x)^(beta-1)/(gamma(alpha)*gamma(beta)/gamma(alpha+beta))
+}
+
+Initial(k_start=10,x.Bound=c(0,1),g
+        #,QC=TRUE
+        )
+
+
+system.time(Initial(k_start=10,x.Bound=c(0,1),g
+        #,QC=TRUE
+        ))
+```
+
+
+```{r, eval=FALSE}
+#Draw x* from s
+#install.packages("MCMCpack")
+library(MCMCpack)
+samples = MCMCmetrop1R(fun=s, mcmc = 100, theta.init=1,V=as.matrix(1))
+```
+
+Start with h(x) = log(g(x))
+
+```{r}
+#install.packages("Deriv")
+library(Deriv)
+g <- function(x) {
+  (3/sqrt(2*pi))*exp(-(x^2)/2)
+}
+g_prime <- Deriv(g)
+set.seed(0)
+x <- rnorm(100)
+g_x <- g(x)
+s_x <- g(x)/integrate(g, lower = "-Inf", upper = "Inf")$value
+h_x <- log(g_x)
+#Work with the log densities
+#Calculate the lower bounds:
+#Initialize two abscissaes, X is a vector that includes abscissaes
+X <- c(-1.7,1.5)
+X <- sort(X)
+Z <- c()
+#H is a vector that includes density h at abscissaes
+#H_prime is a vector that includes first derivative of density h at abscissaes
+update_H <- function(x) {
+ log(g(x))
+}
+update_H_prime <- function(x) {
+g_prime(x)/g(x)
+}
+H <- sapply(X, update_H)
+H_prime <- sapply(X, update_H_prime)
+#Calculate initial lower bounds
+l <- function(x,i) {
+  ((X[i+1]-x)*H[i] + (x-X[i])*H[i+1])/(X[i+1]-X[i])
+}
+u <- function(x,i) {H[i] + (x-X[i])*H_prime[i]}
+#Calculate initial intersection of two tangent lines at abscissaes
+z <- function(i) {
+(H[i+1]-H[i]-X[i+1]*H_prime[i+1]+X[i]*H_prime[i])/(H_prime[i]-H_prime[i+1])
+}
+z_order <- 1
+Z[z_order] <- z(z_order)
+par(mfrow=c(1,2))
+plot(x,g_x, type = "p", col = "black", xlab = "x values", ylab = "Densities", main = "Original densities")
+curve(g(x)/integrate(g, lower = -Inf, upper = Inf)$value,add = TRUE,col="red")
+legend(0.9,1.1,legend=c("g(x)","s(x)"),lty=1:1,col=c("black","red"),cex=0.8)
+plot(x,h_x, xlab = "x values", ylab = "Densities", main = "Log densities", ylim = c(-2,2),xaxt='n')
+lines(x,l(x,1),lty=2)
+lines(x,u(x,1),lty=2)
+lines(x,u(x,2),lty=2)
+abline(v=c(X[1],Z[1],X[2]), lty = 2, col="blue")
+axis(1, c(X[1],Z[1],X[2]),c("x1","z1","x2"))
+x_accept <- c()
+length_accept = 1
+```
+
+```{r}
+#Step 1: Choose if w < exp(l - u)
+w <- runif(1)
+x_star <- runif(1,min = X[1], max = X[2])
+i_star_x <- which.max(X[X<x_star])
+i_star_z <- which.min(Z[x_star<Z])
+if(w < exp(l(x_star,i_star_x) - u(x_star,i_star_z))){
+    x_accept[length_accept] <- x_star
+    length_accept <- length_accept+1
+    print(x_accept)
+    print(w)
+}else {
+    if (w < exp(log(g(x_star)) - u(x_star,i_star_z))) {
+    x_accept[length_accept] <- x_star
+    length_accept <- length_accept+1
+    print(X)
+    print(H)
+    }  
+  #Update step
+    X <- c(X, x_star)
+    X <- sort(X)
+    H <- sapply(X, update_H)
+    H_prime <- sapply(X, update_H_prime)
+    for (z_order in 1:length(X)-1) {
+      Z[z_order] <- z(z_order)
+    }
+}
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
