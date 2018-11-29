@@ -101,8 +101,7 @@ update_accept <- function(x_star, g, X, H, H_prime, Z) {
       if (x_star != X[1] & x_star != X[length(X)]){ #x_star outside other X
         Z[i_star_x+1] <- z(i_star_x) #Overwrite a z
         Z <- append(Z,z(i_star_x+1),i_star_x+1) #Append a new z
-      }
-      else {
+      } else {
         Z <- append(Z,z(i_star_z),i_star_z)
       }
       
