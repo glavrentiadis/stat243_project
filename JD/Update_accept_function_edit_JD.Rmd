@@ -1,0 +1,157 @@
+---
+title: "Update_accept"
+author: "Anh Mai Bui"
+date: "November 26, 2018"
+output: pdf_document
+---
+
+```{r}
+#Inputs
+  library(Deriv)
+g <- function(x) {
+  (3/sqrt(2*pi))*exp(-(x^2)/2)
+}
+X <- c(-1.7,1.5)
+X <- sort(X)
+#x_star <- runif(1,min = X[1], max = X[2])
+
+  g_prime <- Deriv(g)
+  update_H <- function(x) {log(g(x))}
+  update_H_prime <- function(x) {g_prime(x)/g(x)}
+  
+  H <- sapply(X, update_H)
+  H_prime <- sapply(X, update_H_prime) 
+  
+  
+  z <- function(i) {
+  (H[i+1]-H[i]-X[i+1]*H_prime[i+1]+X[i]*H_prime[i])/(H_prime[i]-H_prime[i+1])
+  }
+  Z <- c(-Inf,Inf)
+  for (z_order in 1:length(X)-1) {
+      Z <- append(Z,z(z_order),z_order)
+    }
+x_accept <- c()
+length_accept <- 1
+```
+
+```{r}
+#Note: added H, H_prime, Z as parameters to function
+update_accept <- function(x_star, g, X, H, H_prime, Z) {
+  library(Deriv)
+  #g_prime <- Deriv(g)
+  
+  #update_H <- function(x) {log(g(x))}
+  #update_H_prime <- function(x) {g_prime(x)/g(x)}
+  
+  l <- function(x,i) {
+   #leval <- max(((X[i+1]-x)*H[i] + (x-X[i])*H[i+1])/(X[i+1]-X[i]),-Inf)
+   #if (!(is.numeric(leval))){
+  #   leval <- -Inf
+  # }
+   if (x < X[length(X)] & x > X[1]){ #x in [x_i,x_{i+1}]
+      leval <- ((X[i+1]-x)*H[i] + (x-X[i])*H[i+1])/(X[i+1]-X[i])
+    } else { #x < x_1 or x > x_k
+      leval <- -Inf
+    }
+   return(leval)
+  }
+  u <- function(x,i) {H[i] + (x-X[i])*H_prime[i]}
+  
+  #H <- sapply(X, update_H)
+  #H_prime <- sapply(X, update_H_prime) 
+  z <- function(i) {
+  (H[i+1]-H[i]-X[i+1]*H_prime[i+1]+X[i]*H_prime[i])/(H_prime[i]-H_prime[i+1])
+  }
+  
+  #Z <- c()
+  #for (z_order in 1:length(X)-1) {
+  #    Z[z_order] <- z(z_order)
+  #  }
+  
+ 
+  w <- runif(1)
+  
+  i_star_x <- max(which.max(X[X<x_star]),0)
+    #i_star_z <- which.min(Z[x_star<Z])
+    i_star_z <- length(Z[x_star>=Z]) + which.min(Z[x_star<Z])-1
+  print(paste0("x_star is: ",x_star))
+  print(paste0("Z is: ",c(Z)))
+  print(paste0("i_star_x is: ", i_star_x))
+  print(paste0("i_star_z is: ", i_star_z))
+  print(paste0("L is: ",l(x_star,i_star_x)))
+  print(paste0("U is: ",u(x_star,i_star_z)))
+  
+  if(w <= exp(l(x_star,i_star_x) - u(x_star,i_star_z))){
+    x_accept[length_accept] <<- x_star
+    length_accept <<- length_accept+1
+    print(paste0("No update. New x_accept"))
+
+  } else {
+    #Update step
+    if (x_star %in% X){#x* in X
+      print("x* already in X, no modifications to abscissae, H, or H_prime")
+    }
+    else {#x* NOT in X
+      X <- append(X, x_star,i_star_x)
+      #X <- sort(X)
+      print(X)
+      H <- append(H,update_H(x_star),i_star_x)
+      H_prime <- append(H_prime,update_H_prime(x_star),i_star_x)
+      
+      if (x_star != X[1] & x_star != X[length(X)]){ #x_star outside other X
+        Z[i_star_x+1] <- z(i_star_x) #Overwrite a z
+        Z <- append(Z,z(i_star_x+1),i_star_x+1) #Append a new z
+      }
+      else {
+        Z <- append(Z,z(i_star_z),i_star_z)
+      }
+      
+      #Z <- append(Z,Z_2,i_star_x+1)
+      #for (z_order in 1:length(X)-1) {
+      #  Z[z_order] <- z(z_order)}
+      #X <<- X
+      #H <<- H
+      #H_prime <<- H_prime 
+      #Z <<- Z
+      print(paste0("Abscissae is updated"))
+      print(paste0("New H is updated"))
+      print(paste0("New H_prime is updated"))
+    }
+    
+    if (w <= exp(log(g(x_star)) - u(x_star,i_star_z))) {
+      x_accept[length_accept] <<- x_star
+      length_accept <<- length_accept+1
+      print(paste0("Update step is done. New x_accept"))
+    }
+  }
+  #return(list(X, H, H_prime, Z))
+  X <<- X
+  H <<- H
+  H_prime <<- H_prime
+  Z <<- Z
+}
+
+#update_accept(0.2,g,X)
+```
+
+#Test
+```{r}
+for (i in (1:5)) {
+  x_star <- runif(1,min=-10,max=10)
+  update_accept(x_star,g,X,H,H_prime,Z)
+}
+```
+
+
+#Test
+```{r}
+  x_star <- -5
+  update_accept(x_star,g,X,H,H_prime,Z)
+
+  
+  x_star <- 6
+  update_accept(x_star,g,X,H,H_prime,Z)
+print(x_accept)
+print(X)
+print(Z)
+```
