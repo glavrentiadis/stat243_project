@@ -1,0 +1,126 @@
+---
+title: "Update_accept_version2_120318"
+author: "Anh Mai Bui"
+date: "December 3, 2018"
+output: pdf_document
+---
+
+```{r}
+###Inputs
+library(Deriv)
+g <- function(x) {
+  (3/sqrt(2*pi))*exp(-(x^2)/2)
+}
+X <- c(-1.7,1.5)
+X <- sort(X)
+
+g_prime <- Deriv(g)
+update_H <- function(x) {log(g(x))}
+update_H_prime <- function(x) {g_prime(x)/g(x)}
+  
+  H <- sapply(X, update_H)
+  H_prime <- sapply(X, update_H_prime) 
+  
+  
+  z <- function(i) {
+  (H[i+1]-H[i]-X[i+1]*H_prime[i+1]+X[i]*H_prime[i])/(H_prime[i]-H_prime[i+1])
+  }
+  
+  Z <- c()
+  for (z_order in 1:length(X)-1) {
+      Z[z_order] <- z(z_order)
+    }
+x_accept <- c()
+length_accept <- 1
+```
+
+
+```{r}
+update_accept <- function(x_star, g, X, H, H_prime, Z) {
+
+#Calculate lower bound at point x at position between X[i] and X[i+1] 
+#If x is not in range of X, define the lower bound as negative Infinity
+  
+  
+l <- function(x,i) {
+
+   if (x < X[length(X)] & x > X[1]){ #x in [X[i],X_[i+1] 
+      leval <- ((X[i+1]-x)*H[i] + (x-X[i])*H[i+1])/(X[i+1]-X[i])
+    } else { #x < X[1] or x > X[k]
+      leval <- -Inf
+    }
+   return(leval)
+  }
+
+#Calculate upper bound at point x at position between Z[i-1] and Z[i]
+u <- function(x,i) {H[i] + (x-X[i])*H_prime[i]} #i.e. tangent line at X[i]
+
+#Calculate intersection point Z[i] of tangents at X[i] and X[i+1]
+z <- function(i) {
+  (H[i+1]-H[i]-X[i+1]*H_prime[i+1]+X[i]*H_prime[i])/(H_prime[i]-H_prime[i+1])
+  }
+
+#Generate random variable w
+w <- runif(1)
+
+#Calculate position i such that x is in [X[i], X[i+1]]
+i_star_x <- max(which.max(X[X<=x_star]),0)
+
+#Calculate position i such that x is in [Z[i-1], Z[i]]
+i_star_z <- length(Z[x_star>Z]) + 1
+
+print(paste0("x_star is: ",x_star))
+print(paste0("Z is: ",c(Z)))
+print(paste0("i_star_x is: ", i_star_x))
+print(paste0("i_star_z is: ", i_star_z))
+print(paste0("L is: ",l(x_star,i_star_x)))
+print(paste0("U is: ",u(x_star,i_star_z)))
+
+ 
+if(w <= exp(l(x_star,i_star_x) - u(x_star,i_star_z))){
+    x_accept[length_accept] <<- x_star
+    length_accept <<- length_accept+1
+    print(paste0("No update. New x_accept"))
+
+  } else {
+      #Update step
+      if (x_star %in% X){#x* in X
+      print("x* already in X, no modifications to abscissae, H, or H_prime")
+      } else {
+      X <- append(X, x_star,i_star_x)
+      H <- append(H,update_H(x_star),i_star_x)
+      H_prime <- append(H_prime,update_H_prime(x_star),i_star_x)
+      
+      if (x_star != X[1] & x_star != X[length(X)]){ #x_star outside other X
+        Z[i_star_x] <- z(i_star_x) #Overwrite a z
+        Z <- append(Z,z(i_star_x+1),i_star_x) #Append a new z
+      }
+      else {
+        Z <- append(Z,z(i_star_z),i_star_z)
+      }
+      
+      print(paste0("Abscissae is updated"))
+      print(paste0("New H is updated"))
+      print(paste0("New H_prime is updated"))
+      
+      }
+      
+      #Accept step
+     if (w <= exp(log(g(x_star)) - u(x_star,i_star_z))) {
+      x_accept[length_accept] <<- x_star
+      length_accept <<- length_accept+1
+      print(paste0("Update step is done. New x_accept"))
+    }
+  }
+  
+  #return(list(X, H, H_prime, Z))
+  X <<- X
+  H <<- H
+  H_prime <<- H_prime
+  Z <<- Z    
+  
+}
+```
+
+
+
