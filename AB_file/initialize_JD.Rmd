@@ -1,0 +1,318 @@
+---
+title: "Initialize Step (Step 1/3)"
+author: "JD Bunker"
+date: "11/25/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Algorithm**:
+
+Inputs: w ~ Unif(0,1) \newline
+$l_{k}(x^{*}) = log(g_{l}(x^{*}))$ \newline
+$u_{k}(x^{*}) = log(g_{u}(x^{*}))$ \newline
+$h(x^{*}) = log(g(x^{*}))$ \newline
+$s_{k}(x) = exp(u_{k}(x))/\left(\int_{D} u_{k}(x') \; dx'\right) = g_{u}(x)/\left(\int_{D} g_{u}(x') \; dx'\right)$ \newline
+
+The lower bound of h(x) is $l_{k}(x)$, which connects the values of function h on abscissaes.
+The function of $l_{k}(x)$ between two consecutive abscissaes $x_{j}$ and $x_{j+1}$ is
+  $l_{k}(x) = \frac{(x_{j+1} - x)h(x_{j}) + (x - x_{j})h(x_{j+1})}{x_{j+1} - x_{j}}$ 
+
+Let T be the domain of abscissaes, H be the domain of the realized function H at abscissaes, H_prime be the domain of the realized first derivative of function H at abscissaes.
+
+$h'(x) = \frac{dlog(g(x))}{dx} = \frac{g'(x)}{g(x)}$
+
+**Step 1**: If $w < exp(l_{k}(x^{*}) - u_{k}(x^{*}))$ \newline
+- Accept $x^{*}$ when the condition is satisfied. Draw another $x^{*}$ from $s_{k}(x)$ \newline
+- Reject $x^{*}$ when the condition is not satisfied.
+
+**Step 2**: These two procedures can be done in parallel. \newline
+- Evaluate $h(x^{*}), h'(x^{*})$. Update $l_{k}(x), u_{k}(x), s_{k}(x)$, which are now include $x^{*}$ as an element.
+- Accept $x^{*}$ if $w < exp(h(x^{*}) - u_{k}(x^{*}))$. Otherwise, reject.
+
+Example: Start with g(x) = 3*N(0,1). \newline
+g(x) = $\frac{3}{{\sqrt {2\pi } }}e^{{{ - \left( {x} \right)^2 } \mathord{\left/ {\vphantom {{ - \left( {x} \right)^2 } {2}}} \right. \kern-\nulldelimiterspace} {2}}}$
+```{r, eval=TRUE}
+#Create 
+#install.packages("Ryacas")
+#install.packages("Deriv")
+#install.packages("distr")
+#install.packages("truncnorm")
+library(truncnorm)
+library(Ryacas)
+library(Deriv)
+#library(distr)
+
+#######################################
+#User supplied parameters
+
+#User supplied g-function
+g <- function(x){
+  sigma <- 1
+  mu <- 0
+  val <- 3/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+}
+
+#Examples for function g
+g(0)
+g(1)
+g(-1)
+
+#Number of starting points
+k_start=2 
+
+#Bounds for x
+x.Bound=c(-Inf,Inf) 
+
+
+#######################################
+#Test default deriv() function + Simplify() function
+sigma <- 1
+mu <- 0
+
+x <- Sym("x")
+f <- 1/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+#print(f)
+dx <- eval(deriv(g(x),Sym("x"))); #Derivative of f in terms of x
+print(dx)
+dxSimp <- Ryacas::Simplify(deriv(g(x),"x")) #Simplified version of derivative (collapse terms)...
+print(dxSimp)
+
+s = deriv(~a^2,'a',func = T) #Create function s(a)=a^2
+#s(5) #5^2
+```
+
+
+
+
+
+
+```{r, eval=TRUE}
+#######################################
+#Internally created functions
+g_d <- function(x){
+  as.numeric(eval(Deriv(~g(X),"X")))
+}
+#h function
+h <- function(x){
+    log(g(x))
+}
+
+#Examples for function h
+#h(1)
+#h(-1)
+#h(0)
+
+#h' function
+h_d <- function(X){
+    #print("X:")
+    #print(X)
+  
+    #print("Original:")
+    #print(h(X))
+  
+    #print("Derivative - deriv()")
+    #print(deriv(log(g(x)),"x"))
+  
+    #print("Derivative - Deriv() Unevaluated")
+    #print(Deriv(~log(g(X)),"X"))
+    
+    #print("Derivative - Deriv() Evaluated")
+    #print(eval(fun))
+    #deriv(log(g(x),1))
+  
+  
+    #return(as.numeric(eval(Deriv(~log(g(X)),"X"))))
+  return(as.numeric(1/g(X)*eval(Deriv(~g(X),"X"))))
+}
+
+#Examples for function h'...
+#h_d(0)
+#h_d(-0.5)
+```
+
+
+```{r, eval=TRUE}
+#Initial function (main)
+Initial <- function(k_start,x.Bound,g,QC=FALSE){
+  #print(all.equal(x.Bound,c(-Inf,Inf)))
+
+    upBd <- x.Bound[length(x.Bound)]
+    lowBd <- x.Bound[1]
+    if (lowBd != -Inf){
+      needPosHprime <- FALSE
+    } else{
+      needPosHprime <- TRUE
+    }
+    if (upBd != Inf){
+      needNegHprime <- FALSE
+    } else{
+      needNegHprime <- TRUE
+    }
+    upBdInit <- upBd #Upper bound for initialization points
+    lowBdInit <- lowBd #Lower bound for initialization points
+    if (0==1){
+      
+      if (QC==TRUE){
+        print("Lower & upper bound pairs")
+        print(lowBd)
+        print(upBd)
+        
+        print(upBdInit)
+        print(lowBdInit)
+      }
+    }
+    
+    
+    k <- 0
+    X <- c()
+    
+    
+    #print(paste0("Begin: Find initialization points"))
+    while (k < k_start){
+      samp <- rtruncnorm(1,a=lowBdInit,b=upBdInit)
+      hPrime <- h_d(samp)
+      if (QC==TRUE){
+        print(paste0("Initialization bounds: ",lowBdInit," ",upBdInit))
+        print(paste0("Need positive / negative h'? ",needPosHprime," ",needNegHprime))
+          
+        print(paste0("Sampled point x: ",samp))
+        print(paste0("h'(x): ",h_d(samp)))
+      }
+      
+      if (hPrime >0 & needPosHprime==TRUE){
+        needPosHprime <- FALSE
+        X <- append(X,samp,length(X))
+        k <- k+1
+        #print(paste0("Appended X with h'(X) > 0"))
+        
+        if (needNegHprime==TRUE) {
+          lowBdInit <- samp
+          #print(paste0("Changed lower initialization bound to sampled point"))
+        }
+        else {
+          lowBdInit <- lowBd
+          #print(paste0("Changed lower initialization bound to distribution lower bound"))
+        }
+      }
+      else if (hPrime < 0 & needNegHprime==TRUE) {
+        needNegHprime <- FALSE
+        X <- append(X,samp,0)
+        k <- k+1
+        #print(paste0("Appended X with h'(X) < 0"))
+        
+        if (needPosHprime == TRUE) {
+          upBdInit <- samp
+          #print(paste0("Changed upper initialization bound to sampled point"))
+        }
+        else {
+          upBdInit <- upBd
+          #print(paste0("Changed upper initialization bound to distribution upper bound"))
+        }
+      }
+      else if (k < (k_start-needPosHprime-needNegHprime)){
+        X <- append(X,samp,length(X[X<samp]))
+        k <- k+1
+        #print(paste0("Appended X; no h' requirements met"))
+      }
+      else {
+        #print(paste0("Sampled point does not satisfy any initialization requirements. Sample again."))
+      }
+    }
+    #print(paste0("Finished: Find initialization points"))
+    
+    
+    H <- h(X)
+    H_d <- h_d(X)
+    Z <- c(lowBd,upBd)
+  return(list(X,H,H_d,Z))
+}
+```
+
+
+
+#Normal distribution (2 starting pts)
+```{r,eval=TRUE}
+  #User supplied g-function
+g <- function(x){
+  sigma <- 1
+  mu <- 0
+  val <- 3/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+}
+
+Initial(k_start=2,x.Bound=c(-Inf,Inf),g
+        #,QC=TRUE
+        )
+
+system.time(Initial(k_start=2,x.Bound=c(-Inf,Inf),g
+        #,QC=TRUE
+        ))
+
+```
+
+#Exponential distribution (2 starting pts)
+```{r,eval=TRUE}
+g <- function(x){
+  lam <- 1
+  value <- lam*exp(-lam*x)
+}
+#a <- AbscontDistribution(d=g,low=0,low1=0)
+#print(g(1))
+Initial(k_start=2,x.Bound=c(0,Inf),g
+        #,QC=TRUE
+        )
+```
+
+#Normal distribution (5 starting pts)
+```{r,eval=TRUE}
+  #User supplied g-function
+g <- function(x){
+  sigma <- 1
+  mu <- 0
+  val <- 3/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+}
+Initial(k_start=5,x.Bound=c(-Inf,Inf),g
+        #,QC=TRUE
+        )
+
+print(system.time(Initial(k_start=5,x.Bound=c(-Inf,Inf),g
+        #,QC=TRUE
+        )))
+```
+
+
+#Gamma distribution (5 starting pts)
+```{r,eval=TRUE}
+#User supplied g-function
+g <- function(x){
+  alpha <- 1
+  beta <- 1
+  val <- beta^alpha/gamma(alpha)*x^(alpha-1)*exp(-beta*x)
+}
+
+Initial(k_start=5,x.Bound=c(0,Inf),g
+        #,QC=TRUE
+        )
+```
+
+#Beta distribution (10 starting pts)
+```{r,eval=TRUE}
+  #User supplied g-function
+g <- function(x){
+  alpha <- 1
+  beta <- 3
+  val <- x^(alpha-1)*(1-x)^(beta-1)/(gamma(alpha)*gamma(beta)/gamma(alpha+beta))
+}
+
+Initial(k_start=10,x.Bound=c(0,1),g
+        #,QC=TRUE
+        )
+
+
+system.time(Initial(k_start=10,x.Bound=c(0,1),g
+        #,QC=TRUE
+        ))
+```

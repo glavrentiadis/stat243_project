@@ -47,7 +47,7 @@ update_accept <- function(x_star, g, X) {
   
   i_star_x <- which.max(X[X<x_star])
   if(x_star<max(Z)){ 
-    i_star_z <- which.min(Z[x_star<Z])
+    i_star_z <- length(Z[x_star>Z]) + 1
   }else { 
    i_star_z <- length(X)
   }
