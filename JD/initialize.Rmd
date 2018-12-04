@@ -176,6 +176,7 @@ Initial <- function(k_start,x.Bound,g,QC=FALSE){
       samp <- rtruncnorm(1,a=lowBdInit,b=upBdInit)
       hPrime <- h_d(samp)
       if (QC==TRUE){
+        print(paste0("Current X vector: ",X))
         print(paste0("Initialization bounds: ",lowBdInit," ",upBdInit))
         print(paste0("Need positive / negative h'? ",needPosHprime," ",needNegHprime))
           
@@ -185,7 +186,7 @@ Initial <- function(k_start,x.Bound,g,QC=FALSE){
       
       if (hPrime >0 & needPosHprime==TRUE){
         needPosHprime <- FALSE
-        X <- append(X,samp,length(X))
+        X <- append(X,samp,0)
         k <- k+1
         #print(paste0("Appended X with h'(X) > 0"))
         
@@ -200,7 +201,7 @@ Initial <- function(k_start,x.Bound,g,QC=FALSE){
       }
       else if (hPrime < 0 & needNegHprime==TRUE) {
         needNegHprime <- FALSE
-        X <- append(X,samp,0)
+        X <- append(X,samp,length(X))
         k <- k+1
         #print(paste0("Appended X with h'(X) < 0"))
         
@@ -275,7 +276,7 @@ g <- function(x){
   val <- 3/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
 }
 Initial(k_start=5,x.Bound=c(-Inf,Inf),g
-        #,QC=TRUE
+        ,QC=TRUE
         )
 
 print(system.time(Initial(k_start=5,x.Bound=c(-Inf,Inf),g

@@ -73,14 +73,15 @@ update_accept <- function(x_star, g, X, H, H_prime, Z) {
   
   i_star_x <- max(which.max(X[X<x_star]),0)
     #i_star_z <- which.min(Z[x_star<Z])
-    i_star_z <- length(Z[x_star>=Z]) + which.min(Z[x_star<Z])-1
+    i_star_z <- length(Z[x_star>=Z])
   print(paste0("x_star is: ",x_star))
-  print(paste0("Z is: ",c(Z)))
+  print(paste0("X :",list(X)))
+  print(paste0("Z is: ",list(Z)))
   print(paste0("i_star_x is: ", i_star_x))
   print(paste0("i_star_z is: ", i_star_z))
   print(paste0("L is: ",l(x_star,i_star_x)))
   print(paste0("U is: ",u(x_star,i_star_z)))
-  
+
   if(w <= exp(l(x_star,i_star_x) - u(x_star,i_star_z))){
     x_accept[length_accept] <<- x_star
     length_accept <<- length_accept+1
@@ -94,7 +95,6 @@ update_accept <- function(x_star, g, X, H, H_prime, Z) {
     else {#x* NOT in X
       X <- append(X, x_star,i_star_x)
       #X <- sort(X)
-      print(X)
       H <- append(H,update_H(x_star),i_star_x)
       H_prime <- append(H_prime,update_H_prime(x_star),i_star_x)
       
@@ -135,8 +135,10 @@ update_accept <- function(x_star, g, X, H, H_prime, Z) {
 
 #Test
 ```{r}
-for (i in (1:5)) {
-  x_star <- runif(1,min=-10,max=10)
+
+
+for (i in (1:25)) {
+  x_star <- runif(1,min=-2,max=2)
   update_accept(x_star,g,X,H,H_prime,Z)
 }
 ```
