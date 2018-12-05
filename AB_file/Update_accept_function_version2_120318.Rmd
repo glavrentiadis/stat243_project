@@ -44,7 +44,10 @@ update_accept <- function(x_star, g, X, H, H_prime, Z) {
   
 l <- function(x,i) {
 
-   if (x < X[length(X)] & x > X[1]){ #x in [X[i],X_[i+1] 
+   if (x < X[length(X)] & x >= X[1]){ #x in [X[i],X_[i+1] 
+      leval <- ((X[i+1]-x)*H[i] + (x-X[i])*H[i+1])/(X[i+1]-X[i])
+    } else if (x == X[length(X)]) { 
+      i <- i -1
       leval <- ((X[i+1]-x)*H[i] + (x-X[i])*H[i+1])/(X[i+1]-X[i])
     } else { #x < X[1] or x > X[k]
       leval <- -Inf
@@ -84,14 +87,11 @@ if(w <= exp(l(x_star,i_star_x) - u(x_star,i_star_z))){
 
   } else {
       #Update step
-      if (x_star %in% X){#x* in X
-      print("x* already in X, no modifications to abscissae, H, or H_prime")
-      } else {
       X <- append(X, x_star,i_star_x)
       H <- append(H,update_H(x_star),i_star_x)
       H_prime <- append(H_prime,update_H_prime(x_star),i_star_x)
       
-      if (x_star != X[1] & x_star != X[length(X)]){ #x_star outside other X
+      if (x_star != X[1] & x_star != X[length(X)]){ #x_star inside other X
         Z[i_star_x] <- z(i_star_x) #Overwrite a z
         Z <- append(Z,z(i_star_x+1),i_star_x) #Append a new z
       }
@@ -102,8 +102,6 @@ if(w <= exp(l(x_star,i_star_x) - u(x_star,i_star_z))){
       print(paste0("Abscissae is updated"))
       print(paste0("New H is updated"))
       print(paste0("New H_prime is updated"))
-      
-      }
       
       #Accept step
      if (w <= exp(log(g(x_star)) - u(x_star,i_star_z))) {
