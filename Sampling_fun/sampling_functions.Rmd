@@ -70,7 +70,7 @@ The following code calculates the probability of each segment $P_i$ of a piece-w
 The area under each segment is equal to:
 
 $$
-A_i = \int^{z_{i+1}}_{z_i} e^{h(z_i) + (x-z_i) h'(x_i)} dx = e^h(z_i) \frac{e^{-z_i h'(x_i)}}{h'(x_i)} (e^{h'(x_i) z_i} - e^{h'(x_i) z_{i+1}})
+A_i = \int^{z_{i+1}}_{z_i} e^{h(z_i) + (x-x_i) h'(x_i)} dx = e^{h(x_i)} \frac{e^{-x_i h'(x_i)}}{h'(x_i)} (e^{h'(x_i) z_{i+1}}- e^{h'(x_i) z_i})
 $$
 
 where $z_{i+1}$ and ${z_i}$ are the bounds of each segment, $h(x_i)$ and $h'(x_i)$ are the values of the function and its derivative at $x_i$ which belongs to that segment.
@@ -101,7 +101,7 @@ CalcProbBin <- function(X,Z,H,H_prime){
   # H_prime:  numeric array with the evaluations of the first derivative of h at locations X
   #Output:
   # Pcum: numeric array with the cumulative probability of each of each segment 
-  # s: numeric array with the normalized elevations of exponential distribution at locations X
+  # log_s: numeric array with the normalized elevations of log(s) at locations X
   
   #number of bins
   n_bin <- length(Z) -1
@@ -116,7 +116,7 @@ CalcProbBin <- function(X,Z,H,H_prime){
   #cumulative probabilites
   Pcum <- cumsum(P) 
   #normalized height of distributions
-  s <- H -log(Ptot)
+  log_s <- H -log(Ptot)
   
   return(list(Pcum = Pcum, s = s, Ptot = Ptot))
 }
