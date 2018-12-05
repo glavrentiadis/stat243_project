@@ -94,10 +94,10 @@ s = deriv(~a^2,'a',func = T) #Create function s(a)=a^2
 #######################################
 #Internally created functions
 g_d <- function(x){
-  as.numeric(eval(Deriv(~g(X),"X")))
+  as.numeric(eval(Deriv(~g(x),"X")))
 }
 #h function
-h <- function(x){
+update_H <- function(x){
     log(g(x))
 }
 
@@ -107,7 +107,7 @@ h <- function(x){
 #h(0)
 
 #h' function
-h_d <- function(X){
+update_H_prime <- function(x){
     #print("X:")
     #print(X)
   
@@ -126,18 +126,29 @@ h_d <- function(X){
   
   
     #return(as.numeric(eval(Deriv(~log(g(X)),"X"))))
-  return(as.numeric(1/g(X)*eval(Deriv(~g(X),"X"))))
+  return(as.numeric(1/g(x)*eval(Deriv(~g(x),"x"))))
 }
 
 #Examples for function h'...
-#h_d(0)
-#h_d(-0.5)
+#update_H_prime(0)
+#update_H_prime(-0.5)
+
 ```
 
 
+#Mai Anh's z function
+```{r,eval=TRUE}
+
+```
+
+#Main function
 ```{r, eval=TRUE}
 #Initial function (main)
 Initial <- function(k_start,x.Bound,g,QC=FALSE){
+  
+  z <- function(i) {
+    (H[i+1]-H[i]-X[i+1]*H_prime[i+1]+X[i]*H_prime[i])/(H_prime[i]-H_prime[i+1])
+  }
   #print(all.equal(x.Bound,c(-Inf,Inf)))
 
     upBd <- x.Bound[length(x.Bound)]
@@ -174,14 +185,14 @@ Initial <- function(k_start,x.Bound,g,QC=FALSE){
     #print(paste0("Begin: Find initialization points"))
     while (k < k_start){
       samp <- rtruncnorm(1,a=lowBdInit,b=upBdInit)
-      hPrime <- h_d(samp)
+      hPrime <- update_H_prime(samp)
       if (QC==TRUE){
         print(paste0("Current X vector: ",X))
         print(paste0("Initialization bounds: ",lowBdInit," ",upBdInit))
         print(paste0("Need positive / negative h'? ",needPosHprime," ",needNegHprime))
           
         print(paste0("Sampled point x: ",samp))
-        print(paste0("h'(x): ",h_d(samp)))
+        print(paste0("h'(x): ",update_H_prime(samp)))
       }
       
       if (hPrime >0 & needPosHprime==TRUE){
@@ -226,10 +237,12 @@ Initial <- function(k_start,x.Bound,g,QC=FALSE){
     #print(paste0("Finished: Find initialization points"))
     
     
-    H <- h(X)
-    H_d <- h_d(X)
-    Z <- c(lowBd,upBd)
-  return(list(X,H,H_d,Z))
+    H <- update_H(X)
+    H_prime <- update_H_prime(X)
+    Z <- sapply(1:(length(X)-1),FUN=z)
+    Z <- c(lowBd,Z,upBd)
+    
+  return(list(X,H,H_prime,Z))
 }
 ```
 
@@ -276,7 +289,7 @@ g <- function(x){
   val <- 3/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
 }
 Initial(k_start=5,x.Bound=c(-Inf,Inf),g
-        ,QC=TRUE
+        #,QC=TRUE
         )
 
 print(system.time(Initial(k_start=5,x.Bound=c(-Inf,Inf),g
@@ -289,7 +302,7 @@ print(system.time(Initial(k_start=5,x.Bound=c(-Inf,Inf),g
 ```{r,eval=TRUE}
 #User supplied g-function
 g <- function(x){
-  alpha <- 1
+  alpha <- 2 #Note: alpha=1,beta=1 --> straight line in h(x)=log[g(x)]
   beta <- 1
   val <- beta^alpha/gamma(alpha)*x^(alpha-1)*exp(-beta*x)
 }
