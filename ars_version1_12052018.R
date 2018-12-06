@@ -14,10 +14,10 @@ ars <- function(g,n_samp,x.Bound,k_start = 2){
   H <- out[[2]]
   H_prime <- out[[3]]
   Z <- out[[4]]
-  H_norm <- out[[5]]
-  Pcum <- out[[6]]
-  Ptot <- out[[7]]
-  
+  H_norm <- out$H_norm
+  Pcum <- out$Pcum
+  Ptot <- out$Ptot
+
   rm(out)
   
 
@@ -27,18 +27,18 @@ ars <- function(g,n_samp,x.Bound,k_start = 2){
   while (k <= n_samp){
     #sample x_star
     x_star <- SamplePieceExp(X,Z,H_norm,H_prime,Pcum)
-    
+    print(paste('Master: x_star:',x_star))
     #check if x_star will be kept and update X,Z,H,H_prime if needed
-    out <- update_accept(x_star, g, X, H, H_prime, Z,k) 
+    out <- update_accept(x_star, g, X, H, H_prime, Z,k,x_accept,H_norm,Pcum) 
     X <- out[[1]]
     H <- out[[2]]
     H_prime <- out[[3]]
     Z <- out[[4]]
     x_accept <- out[[5]]
     k <- out[[6]]
-    H_norm <- out[[7]]
-    Pcum <- out[[8]]
-    Ptot <- out[[9]]
+    H_norm <- out$H_norm
+    Pcum <- out$Pcum
+
     
   }
   
@@ -53,12 +53,12 @@ ars <- function(g,n_samp,x.Bound,k_start = 2){
 #Auxilary functions
 
 #function to compute log of g (function h)
-update_H <- function(x){
+update_H <- function(x,g){
   log(g(x))
 }
 
 #function to compute the derivative of h
-update_H_prime <- function(X){
+update_H_prime <- function(X,g){
   return(as.numeric(1/g(X)*eval(Deriv(~g(X),"X"))))
 }
 
@@ -99,14 +99,14 @@ Initial <- function(k_start,x.Bound,g,QC=FALSE){
   #print(paste0("Begin: Find initialization points"))
   while (k < k_start){
     samp <- rtruncnorm(1,a=lowBdInit,b=upBdInit)
-    hPrime <- update_H_prime(samp)
+    hPrime <- update_H_prime(samp,g)
     if (QC==TRUE){
       print(paste0("Current X vector: ",X))
       print(paste0("Initialization bounds: ",lowBdInit," ",upBdInit))
       print(paste0("Need positive / negative h'? ",needPosHprime," ",needNegHprime))
       
       print(paste0("Sampled point x: ",samp))
-      print(paste0("h'(x): ",update_H_prime(samp)))
+      print(paste0("h'(x): ",update_H_prime(samp,g)))
     }
     
     if (hPrime >0 & needPosHprime==TRUE){
@@ -149,8 +149,8 @@ Initial <- function(k_start,x.Bound,g,QC=FALSE){
     }
   }
   #print(paste0("Finished: Find initialization points"))
-  H <- update_H(X)
-  H_d <- update_H_prime(X)
+  H <- update_H(X,g)
+  H_d <- update_H_prime(X,g)
   Z <- (H[-1] - H[-k_start] - X[-1]*H_d[-1] + X[-k_start]*H_d[-k_start])/(H_d[-k_start] - H_d[-1])
 
   #include the bounds in the array Z
@@ -159,11 +159,11 @@ Initial <- function(k_start,x.Bound,g,QC=FALSE){
   #compute the probabilites of each piece-wise exponential bin
   out <- CalcProbBin(X,Z,H,H_d)
   Pcum <- out[[1]]
-  H_nrom <- out[[2]]
+  H_norm <- out[[2]]
   Ptot <- out[[3]]
   
   
-  return(list(X,H,H_d,Z,Pcum,H_norm,Ptot))
+  return(list(X = X,H = H,H_prime = H_d,Z = Z,Pcum = Pcum,H_norm = H_norm,Ptot = Ptot))
 }
 
 #Piece wise exponential sampling
@@ -229,7 +229,7 @@ CalcProbBin <- function(X,Z,H,H_prime){
 
 #Accept or reject sample 
 #Note: added H, H_prime, Z as parameters to function
-update_accept <- function(x_star, g, X, H, H_prime, Z,length_accept) {
+update_accept <- function(x_star, g, X, H, H_prime, Z,length_accept,x_accept,H_norm,Pcum) {
   
   l <- function(x,i) {
     if (x < X[length(X)] & x >= X[1]){ #x in [X[i],X_[i+1] 
@@ -269,8 +269,8 @@ update_accept <- function(x_star, g, X, H, H_prime, Z,length_accept) {
     #Update step
     
     X <- append(X, x_star,i_star_x)
-    H <- append(H,update_H(x_star),i_star_x)
-    H_prime <- append(H_prime,update_H_prime(x_star),i_star_x)
+    H <- append(H,update_H(x_star,g),i_star_x)
+    H_prime <- append(H_prime,update_H_prime(x_star,g),i_star_x)
     
     if (x_star != X[1] & x_star != X[length(X)]){ #x_star outside other X
       Z[i_star_x+1] <- z(i_star_x) #Overwrite a z
@@ -299,7 +299,7 @@ update_accept <- function(x_star, g, X, H, H_prime, Z,length_accept) {
   }
 
   
-  return(list(X,H,H_prime,Z,x_accept,length_accept,H_norm,Pcum,Ptot))
+  return(list(X = X,H = H,H_prime = H_prime,Z = Z,x_accept = x_accept,k = length_accept,H_norm = H_norm,Pcum = Pcum))
   
 }
 
