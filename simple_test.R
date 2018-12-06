@@ -12,9 +12,12 @@ g <- function(x){
 log(g(2))
 
 n_samp <- 10000
-x_b <- c(4,200)
+x_b <- c(-Inf,Inf)
 
+system.time(
 temp <- ars(g,n_samp,x.Bound = x_b ,k_start = 2)
+)
+
 
 mean(temp)
 sd(temp)
