@@ -1,6 +1,4 @@
 
-rm(list = ls())
-
 ars <- function(g,n_samp,x_bound,x_start = c(),sybolic_deriv = FALSE){
   
   #load libraries
@@ -318,6 +316,20 @@ UpdateAccept <- function(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, len
       return((H[i+1]-H[i]-X[i+1]*H_prime[i+1]+X[i]*H_prime[i])/(H_prime[i]-H_prime[i+1]))
     }
   }
+  
+  #function to test if function is concave 
+  concave_check <- function(u_at_xstar,l_at_xstar,tol){
+    # assert_that(l_at_xstar - u_at_xstar  > tol)
+    tol <- sqrt(.Machine$double.eps)*max(abs(u_at_xstar),1) #tolerance for concavity check
+    if(l_at_xstar - u_at_xstar  < tol){
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  }
+  on_failure(concave_check) <- function(call, env) {
+    print(paste0("h(x) doesn't satisfy the concavity requirements at x*: ",x_star,", u(x*): ",u_at_xstar,", l(x*): ",l_at_xstar))
+  }
 
 
   w <- runif(1)
@@ -332,7 +344,13 @@ UpdateAccept <- function(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, len
   # print(paste0("L is: ",l(x_star,i_star_x)))
   # print(paste0("U is: ",u(x_star,i_star_z)))
   
-  if(w <= exp(l(x_star,i_star_x) - u(x_star,i_star_z))){
+  #concavity check
+  u_at_xstar <- u(x_star,i_star_z)
+  l_at_xstar <- l(x_star,i_star_x)
+  assert_that(concave_check(u_at_xstar,l_at_xstar))
+
+  
+  if(w <= exp(l_at_xstar - u_at_xstar)){
     x_accept[length_accept] <- x_star
     length_accept <- length_accept+1
     # print(paste0("No update. New x_accept"))
@@ -377,7 +395,7 @@ UpdateAccept <- function(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, len
    # print(paste0("H_prime is: ",cat(H_prime)))
     
     #accept x_star second test
-    if (w <= exp(eval_h(x_star) - u(x_star,i_star_z))) {
+    if (w <= exp(eval_h(x_star) - u_at_xstar)) {
       x_accept[length_accept] <- x_star
       length_accept <- length_accept+1
       # print(paste0("Update step is done. New x_accept"))
