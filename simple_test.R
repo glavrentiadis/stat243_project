@@ -1,22 +1,29 @@
 
 
 g <- function(x){
-  
-  mu <- 0
-  std <- 1
+  mu <- 5
+  std <- 4
   
   f_pdf <- 1/sqrt(2*pi*std^2)*exp(-(x-mu)^2/(2*std^2))
-  
 }
 
-log(g(2))
-
-n_samp <- 10000
+n_samp <- 100000
 x_b <- c(-Inf,Inf)
 
-system.time(
-temp <- ars(g,n_samp,x.Bound = x_b ,k_start = 2)
-)
+#system.time(
+temp <- ars(g, n_samp, x_bound = x_b,  sybolic_deriv = FALSE)
+#)
+
+
+
+#g <- function(x){
+  
+  #eval <- exp(x^2)
+  
+#}
+
+
+
 
 
 mean(temp)
