@@ -99,6 +99,12 @@ If $w < exp(l_{k}(x^{*}) - u_{k}(x^{*}))$ \newline
 
 Since the h(x), $l_{k}(x)$, $u_{k}(x)$ can be generated from vectors H, H_prime, and Z, we improve the efficiency of the calculation by efficiently updating H, H_prime, and Z.  We append the vectors associated with the new abscissae x* and append to the existing vectors.
 
-Multiple testing are generated based on values that $x^*$ can take.  For example, if $x^*$ is out of the domain of X, $l_{k}(x^{*})=-Inf$. If $x^*$ is at the minimum value X[1] and maximum value X[n] in the domain of X, $l_{k}(x^{*})$ will take the values on the lines connecting X[1] and X[2], and connecting X[n-1] and X[n] respectively.
+Multiple testing are generated based on values that $x^*$ can take.  For example, if $x^*$ is out of the domain of X, $l_{k}(x^{*})=-Inf$. If $x^*$ is at the minimum value X[1] and maximum value X[n] in the domain of X, $l_{k}(x^{*})$ will take the values on the lines connecting X[1] and X[2], and connecting X[n-1] and X[n] respectively.  Vector Z is also generated for the case when H(x) is a linear function of x (for example, the exponential distribution)
 
 #V. Testing
+The ars function passes the test for the following distributions in the testing phase: \newline
+- Normal distribution with mean = 0  and standard deviation = 1 \newline
+- Normal distribution with mean = 7  and standard deviation = 2 \newline
+- Beta(1,3) distribution \newline
+- Gamma(2,3) distribution \newline
+- Exponential(5) distribution \newline
