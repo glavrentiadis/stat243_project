@@ -52,6 +52,6 @@ out <- CalcProbBin(X,Z,H,H_prime)
 plot(out[[1]],ppois(Z,lambda = 2)[-1])
 
 #Exponential (lambda =5).
-
+plot(out[[1]],pexp(Z,rate = 5)[-1])
 
 
