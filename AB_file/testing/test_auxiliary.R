@@ -1,0 +1,1 @@
+##Test CalcProbBin function to generate 

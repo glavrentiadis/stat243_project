@@ -91,4 +91,3 @@ p_value <- ks.test(temp,check)$p.value
 
 expect_gt(p_value,0.05)
 
-##Test for auxiliary function
