@@ -202,6 +202,7 @@ SampleXStart <- function(x_bound,eval_h,eval_deriv_h){
   flag_bound_req <- FALSE
   mean_samp <- 0
   std_samp <- 1
+  ct <- 0
   while (flag_bound_req == FALSE){
     samp <- rtruncnorm(1, a=lowBd_samp, b=x_bound[2], mean = mean_samp, sd = std_samp)
     hPrime <- eval_deriv_h(samp)
@@ -221,6 +222,7 @@ SampleXStart <- function(x_bound,eval_h,eval_deriv_h){
       std_samp <- std_samp*offset_val
       lowBd_samp <- samp
     }
+    ct <- ct +1
   }
   
   #sort starting points in acceding order

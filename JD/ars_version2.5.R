@@ -1,3 +1,11 @@
+
+#install.packages("devtools")
+library(devtools)
+setwd("/Users/jbunker7/Documents/GitHub/stat243_project/Package")
+#usethis::create_package("Package")
+
+#' @title Documentation for ars() function
+#' @name ARS
 #' @param g (Required) Function containing the target probability density function (pdf).
 #' @param n_samp (Required) An integer representing the desired sample size.
 #' @param x_bound (Required) A vector containing: (1) the lower bound of the domain of \code{g}, 
@@ -438,4 +446,6 @@ UpdateAccept <- function(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, len
   
 }
 
-
+devtools::document()
+install("Package")
+?.
