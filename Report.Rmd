@@ -133,7 +133,6 @@ The \textit{ars()} function passes the test for the following distributions in t
   \item Normal distribution with mean = 7 and standard deviation = 2
   \item Beta(1,3) distribution
   \item Gamma(2,3) distribution
-  \item Exponential(5) distribution 
 \end{itemize}
 
 ##2. Tests for auxiliary functions
