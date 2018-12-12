@@ -13,31 +13,28 @@ This project aims to apply the adaptive rejection sampling method described in G
 Each team member was primarily responsible for one of the three steps mentioned in Gilks et al. (1992): (1) the initialization step, (2) the sampling step, (3) the updating step. Summary of contributions:
 \begin{itemize}
 
-\item Bunker, JD: Primarily responsible for the initialization step where the . If the user does not provide pointswhich samples the starting points. The \textit{initial()} function . Other contributions include improving the computational efficiency of the \textit{Update_accept()} function, and testing the log-concavity of the given function.
+\item Bunker, JD: Primarily responsible for the initialization step, which sets the starting abscissae. In the main \textit{ars()} function, the user can provide these points. Otherwise, the starting points are automatically selected. Other contributions include improving the computational efficiency of the \textit{Update\_accept()} function, testing the log-concavity of the given function, editing the report, and writing the documentation.
 
-\item Lavrentiadis, Grigorios: Primarily responsible for the sampling step, which generates the value $x^*$ from a piecewise exponential distribution, $s_k(x)$. Assemble the auxiliary functions into the comprehensive \textit{ars()} function.
+\item Lavrentiadis, Grigorios: Primarily responsible for the sampling step, which generates the value $x^*$ from a piecewise exponential distribution, $s_k(x)$. Other contributions include assembling the auxiliary functions into the comprehensive \textit{ars()} function, and miscellaneous code optimization.
 
-\item Bui, Anh: Update_accept function to decide whether $x^*$ is accepted or rejected in the final sample.  Update the envelop and squeezing functions accordingly.  Write the report and the formal testing.
+\item Bui, Anh: Primarily responsible for the updating step, which decides whether $x^*$ is accepted or rejected in the final sample. In addition, the envelope and squeezing functions are updated accordingly.  Other contributions include writing the report and implementing the formal testing.
 
 \end{itemize}
 
 #III.  Theoretical background for rejection sampling
 
-Assume f(x) is an univariate log-concave probability density function.  We sample from g(x), which is a scaling of function f(x).  Assuming that we have the envelop function $g_{u}(x)$ and the squeezing function $g_{l}(x)$ of g(x).
+Assume $f(x)$ is a univariate log-concave probability density function, and that $g(x)$ is a scaled version of $f(x)$. We define envelope function $g_{u}(x)$ and the squeezing function $g_{l}(x)$ about $g(x)$. We iteratively sample a point $x^*$ from $g_u(x)$ and independently sample a value $y$ from $Y \sim Unif(0,g_{u}(x))$.
 
-Let Y ~ Unif(0,$g_{u}(x)$) and where w ~ Unif(0,1).  We reject $x*$ if 
+We reject $x*$ if 
 
 $$
-Y < g(x*) 
+y \leq g_l(x^*) 
 $$
+Instead of choosing a $y$ from $Y \sim Unif(0,g_{u}(x))$, we could equivalently choose a $w$ from $W \sim Unif(0,1)$ distribution, like within the paper. In which case, the comparison becomes
 $$
-\frac{Y}{g_{u}(x)} < \frac{g(x)}{g_{u}(x)}
+w \leq \frac{g_l(x^*)}{g_{u}(x^*)}
 $$
-$$
-w < \frac{g(x)}{g_{u}(x)} 
-$$
-
-The paper gives the algorithm of adaptive rejection sampling when working with the log of g(x), $g_{l}(x)$, and $g_{u}$, which will be discussed more in details in the auxiliary functions section.
+In non-adaptive sampling, the $g_l(x)$ and $g_u(x)$ functions are invariant throughout the sampling process. However, in adaptive sampling, these functions are updated iteratively. The paper gives the algorithm of adaptive rejection sampling when working with the log of $g(x)$, $g_l(x)$, and $g_{u}(x)$. See the \textit{Auxiliary functions} section below for our specific coding implementation.
 
 #IV. Auxiliary functions
 
@@ -46,9 +43,9 @@ The paper gives the algorithm of adaptive rejection sampling when working with t
 ##2. Generate x* from piecewise exponential probabilities
 
 The `SamplePieceExp` function draws samples $x^*$ out of a piece-wise exponential distribution using the inverse sampling approach. 
-Initially a $Pinv$ sample is drawn from a $0$ to $1$ uniform distribution that corresponds to the cumulative probability of the random sample $x^*$
-To find the bin at which $x^*$ belongs, $Pinv$ is compared with the cumulative probability of each bin. 
-$x^*$ belongs to the bin whose cumulative probability ($Pcum_i$) is the smallest out of all bins that have $Pcum$ larger than $Pinv$.
+Initially a $P_{inv}$ sample is drawn from a $0$ to $1$ uniform distribution that corresponds to the cumulative probability of the random sample $x^*$
+To find the bin at which $x^*$ belongs, $P_{inv}$ is compared with the cumulative probability of each bin $i$, $P_{cum}i$. 
+$x^*$ belongs to the bin with the smallest cumulative probability ($P_{cum}i$) larger than $P_{inv}$.
 $x^*$ is estimated by solving the following cumulative probability equation, where $z_0$ is the left bound of the distribution and $P_j$ is the probability of bin $j$.
 
 
@@ -56,32 +53,37 @@ $$
 P_{inv} = \int^{x^*}_{z_0} s(x) dx = \sum^i_{j=1}P_j + \int^{x^*}_{z_i} s(x) dx
 $$
 
-$DP$ equals to the probability $P(z_i > x > x^*)$ where $z_i$ is the lower bound of the bin $i$ where $x^*$ belongs
+$DP$ is equal to the probability $P(z_i > x > x^*)$, where $z_i$ is the lower bound of the bin $i$ in which $x^*$ belongs. See the formula for $DP$ below.
 
 $$
 DP = \int^{x^*}_{z_i} e^{h(x_j) + (x-x_j) h'(x_j)} dx 
 $$
 
-To simplify the equation we define: $a = h(x_j)-x_j h'(x_j)$ and $b = h'(x_j)$
+To simplify this equation, we define: $a = h(x_j)-x_j h'(x_j)$ and $b = h'(x_j)$
 From this equation, $x^*$ equals to:
 
 $$
 x^* = \frac{1}{b} log(DP~b~e^{-a} +  e^{b~z_i})
 $$
 
-##3. Update accept function
+##3. Update_accept() function
 
 **Algorithm**
 
-Inputs: w ~ Unif(0,1) \newline
-$$l_{k}(x^{*}) = log(g_{l}(x^{*}))$$ 
-$$u_{k}(x^{*}) = log(g_{u}(x^{*}))$$ 
-$$h(x^{*}) = log(g(x^{*}))$$
-$$s_{k}(x) = exp(u_{k}(x))/\left(\int_{D} u_{k}(x') \; dx'\right) = g_{u}(x)/\left(\int_{D} g_{u}(x') \; dx'\right)$$ 
+Inputs: 
+\begin{itemize}
+  \item $w \sim Unif(0,1))$
+  \item $l_{k}(x^{*}) = log(g_{l}(x^{*}))$
+  \item $u_{k}(x^{*}) = log(g_{u}(x^{*}))$
+  \item $h(x^{*}) = log(g(x^{*}))$
+  \item $s_{k}(x) = \frac{\exp u_{k}(x) }{\int_{D} \exp u_{k}(x') dx'} = \frac{g_{u}(x)} {\int_{D} g_{u}(x')dx'}$ 
+\end{itemize}
 
-The lower bound of h(x) is $l_{k}(x)$, which connects the values of function h on abscissaes.
+The lower bound of $h(x)$ is $l_{k}(x)$, which connects the values of function h on abscissaes.
 The function of $l_{k}(x)$ between two consecutive abscissaes $x_{j}$ and $x_{j+1}$ is
-  $$l_{k}(x) = \frac{(x_{j+1} - x)h(x_{j}) + (x - x_{j})h(x_{j+1})}{x_{j+1} - x_{j}}$$ 
+$$
+l_{k}(x) = \frac{(x_{j+1} - x)h(x_{j}) + (x - x_{j})h(x_{j+1})}{x_{j+1} - x_{j}}
+$$ 
 Let X be the domain of abscissaes, H be the domain of the realized function H at abscissaes, H_prime be the domain of the realized first derivative of function H at abscissaes, Z be the domain of intersection of tangent lines at abscissaes.
 
 $$h'(x) = \frac{dlog(g(x))}{dx} = \frac{g'(x)}{g(x)}$$
@@ -89,30 +91,39 @@ The intersection of the tangents at $x_{j}$ and $x_{j+1}$ is
 
 $$z_j = \frac{h(x_{j+1})-h(x_{j}) - x_{j+1}h'(x_{j+1})+x_{j}h'(x_{j})}{h'(x_{j})-h'(x_{j+1})}$$
 Then for x between $z_{j-1}$ and $z_{j}$
-$$u_{k}(x) = h(x_{j}) + (x-x_{j})h'(x_{j})$$
+$$
+u_{k}(x) = h(x_{j}) + (x-x_{j})h'(x_{j})
+$$
 
 **Step 1**:
-If $w < exp(l_{k}(x^{*}) - u_{k}(x^{*}))$ \newline
-- Accept $x^{*}$ when the condition is satisfied. Draw another $x^{*}$ from $s_{k}(x)$ \newline
-- Reject $x^{*}$ when the condition is not satisfied.
+If $w < exp(l_{k}(x^{*}) - u_{k}(x^{*}))$ 
+\begin{itemize}
+  \item Accept $x^{*}$ when the condition is satisfied. Draw another $x^{*}$ from $s_{k}(x)$
+  \item Reject $x^{*}$ when the condition is not satisfied.
+\end{itemize}
 
-**Step 2**: These two procedures can be done in parallel. \newline
-- Evaluate $h(x^{*}), h'(x^{*})$. Update $l_{k}(x), u_{k}(x), s_{k}(x)$. X includes $x^{*}$ as an element. \newline
-- Accept $x^{*}$ if $w < exp(h(x^{*}) - u_{k}(x^{*}))$. Otherwise, reject.
+**Step 2**: These two procedures can be done in parallel. 
+\begin{itemize}
+\item Evaluate $h(x^{*}), h'(x^{*})$. Update $l_{k}(x), u_{k}(x), s_{k}(x)$. $X$ includes $x^{*}$ as an element. 
+\item Accept $x^{*}$ if $w < exp(h(x^{*}) - u_{k}(x^{*}))$. Otherwise, reject.
+\end{itemize}
 
-Since the h(x), $l_{k}(x)$, $u_{k}(x)$ can be generated from vectors H, H_prime, and Z, we improve the efficiency of the calculation by efficiently updating H, H_prime, and Z.  We append the vectors associated with the new abscissae x* and append to the existing vectors.
+The $l_{k}(x)$ and $u_{k}(x)$ functions are generated based on from the vector variables H, H_prime, and Z. The first two variables represent the values of $h(x)$, $h'(x)$ for each value in $X$. When a new $x^*$ is accepted, we add the corresponding $h(x^*)$ and $h'(x^*)$ to $H$ and $H_prime$. For the vector of $z$ values, variable $Z$, we append a new value corresponding to $x^*$. In cases where $x^*$ is between existing values in $X$, we also modify an existing value of $Z$.
 
-Multiple testing are generated based on values that $x^*$ can take.  For example, if $x^*$ is out of the domain of X, $l_{k}(x^{*})=-Inf$. If $x^*$ is at the minimum value X[1] and maximum value X[n] in the domain of X, $l_{k}(x^{*})$ will take the values on the lines connecting X[1] and X[2], and connecting X[n-1] and X[n] respectively.  Vector Z is also generated for the case when H(x) is a linear function of x (for example, the exponential distribution)
+Multiple testing are generated based on values that $x^*$ can take.  For example, if $x^*$ is out of the domain of X, $l_{k}(x^{*})=-Inf$. If $x^*$ is at the minimum value $X[1]$ and maximum value $X[n]$ in the domain of X, $l_{k}(x^{*})$ will take the values on the lines connecting $X[1]$ and $X[2]$, and connecting $X[n-1]$ and $X[n]$ respectively.  Vector $Z$ is also generated for the case when $H(x)$ is a linear function of x (for example, the exponential distribution).
 
 #V. Testing
 
 ##1. Formal tests for ars function
-The ars function passes the test for the following distributions in the testing phase using the Kolmogorov-Smirnov Test: \newline
-- Normal distribution with mean = 0  and standard deviation = 1 \newline
-- Normal distribution with mean = 7  and standard deviation = 2 \newline
-- Beta(1,3) distribution \newline
-- Gamma(2,3) distribution \newline
-- Exponential(5) distribution \newline
+The \textit{ars()} function passes the test for the following distributions in the testing phase using the Kolmogorov-Smirnov Test: \newline
+
+\begin{itemize}
+  \item Normal distribution with mean = 0 and standard deviation = 1
+  \item Normal distribution with mean = 7 and standard deviation = 2
+  \item Beta(1,3) distribution
+  \item Gamma(2,3) distribution
+  \item Exponential(5) distribution 
+\end{itemize}
 
 ##2. Tests for auxiliary functions
 
