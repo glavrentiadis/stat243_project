@@ -102,9 +102,19 @@ Since the h(x), $l_{k}(x)$, $u_{k}(x)$ can be generated from vectors H, H_prime,
 Multiple testing are generated based on values that $x^*$ can take.  For example, if $x^*$ is out of the domain of X, $l_{k}(x^{*})=-Inf$. If $x^*$ is at the minimum value X[1] and maximum value X[n] in the domain of X, $l_{k}(x^{*})$ will take the values on the lines connecting X[1] and X[2], and connecting X[n-1] and X[n] respectively.  Vector Z is also generated for the case when H(x) is a linear function of x (for example, the exponential distribution)
 
 #V. Testing
-The ars function passes the test for the following distributions in the testing phase: \newline
+
+##1. Formal tests for ars function
+The ars function passes the test for the following distributions in the testing phase using the Kolmogorov-Smirnov Test: \newline
 - Normal distribution with mean = 0  and standard deviation = 1 \newline
 - Normal distribution with mean = 7  and standard deviation = 2 \newline
 - Beta(1,3) distribution \newline
 - Gamma(2,3) distribution \newline
 - Exponential(5) distribution \newline
+
+##2. Tests for auxiliary functions
+
+###a. Test CalcProbBin function
+The CalcProbBin function generates the cumulative probability based on elements in vector Z (i.e. the intersection of the tangent lines of abscissaes).Based on vector Z under the N(0,1) density, we test whether the calculated cumulative probabilities are (nearly) equal to the cumulative probability using "pnorm(Z)".
+
+###b. Test UpdateAccept function
+The UpdateAccept function decides whether to accept $x*$ or not based on designed conditions.  We test this function by checking that if $x*$ is included in X, $x*$ is accepted and included in the x_accept vector, as well as there is no update, i.e. H and H_prime stay the same.
