@@ -31,7 +31,7 @@
 #' g <- function(x,alpha=2,beta=1){
 #'   val <- beta^alpha/gamma(alpha)*x^(alpha-1)*exp(-beta*x)
 #' }
-#' ars(g,n_samp=20,x_bound=c(0,Inf),x_start=c(0.25,0.75))
+#' ars(g,n_samp=20,x_bound=c(0,1),x_start=c(0.25,0.75))
 #' @export
 ars <- function(g,n_samp,x_bound,x_start = c(),sybolic_deriv = FALSE){
 
