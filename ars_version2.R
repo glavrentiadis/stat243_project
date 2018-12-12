@@ -103,7 +103,32 @@ SymbolicEvalHPrime <- function(g){
 CheckXStart <- function(x_start,x_bound,eval_h,eval_deriv_h){
   #CheckXStart checks that the staring x points satisfy the requirements
   #and creates the inital arrays (X ,H ,H_prime , Z ,Pcum ,H_norm, Ptot)
-
+  
+  #functions to test check the inital points
+  #first point check for positve first derivative
+  first_point_check <- function(H_d){
+    if(H_d[1]>0){
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  }
+  on_failure(first_point_check) <- function(call, env) {
+    print("Invalid starting points, for a left unbounded distribution first derivative of first starting point must be positive")
+  }
+  #last point check for negative first derivative
+  last_point_check <- function(H_d){
+    k_len <- length(H_d)
+    if(H_d[k_len]<0){
+      return(TRUE)
+    } else {
+      return(FALSE)
+    }
+  }
+  on_failure(last_point_check) <- function(call, env) {
+    print("Invalid starting points, for a right unbounded distribution first derivative of last starting point must be negative")
+  }
+  
   #assert x_bound has to elements
   assert_that(length(x_bound) == 2)
   #assert that at least two starting points are specified
@@ -121,11 +146,11 @@ CheckXStart <- function(x_start,x_bound,eval_h,eval_deriv_h){
 
   #if lower derivative is -Inf, the derivative of the last point must be positive
   if (is.infinite(x_bound[1])){
-    assert_that(H_d[1]>0)
+    assert_that(first_point_check(H_d))
   }
   #if upper derivative is +Inf, the derivative of the last point must be negative
   if (is.infinite(x_bound[2])){
-    assert_that(H_d[k_start]<0)    
+    assert_that(last_point_check(H_d))    
   }
     
   #evaluate the intersection points
@@ -276,6 +301,10 @@ CalcProbBin <- function(X,Z,H,H_prime){
   a_coef <- H - X*H_prime #intersect of each line seg. (log space)
   b_coef <- H_prime #slope of each line seg. (log space)
   P <- exp(a_coef)/b_coef*(exp(b_coef*Z[-1]) - exp(b_coef*Z[-(n_bin+1)]))
+  #probabilities for bins with zero tangent (the above equation is not valid for this case)
+  bin_zero_Hprime <- abs(H_prime) <sqrt(.Machine$double.eps)
+  P[bin_zero_Hprime] <- (Z[-1][bin_zero_Hprime] - Z[-length(Z)][bin_zero_Hprime])*exp(a_coef[bin_zero_Hprime])
+  
   #normalized probabilites
   Ptot <- sum(P)
   P <- P/Ptot
