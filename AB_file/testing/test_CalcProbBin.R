@@ -36,7 +36,7 @@ Z <- append(Z,Inf,length(Z))
 Pcum <- CalcProbBin(X,Z,H,H_prime)$Pcum
 Pcum_check <- pnorm(Z[-1])
 
-context("Testing CalcProbBin auxiliary function")
+context("Testing CalcProbBin auxiliary function with tolerance difference = 0.1")
 
 test_that("CalcProbBin auxiliary function", {
 expect_equivalent(Pcum,Pcum_check,tolerance = 0.1)
