@@ -168,9 +168,10 @@ CheckXStart <- function(x_start,x_bound,eval_h,eval_deriv_h){
   assert_that(length(x_bound) == 2)
   #assert that at least two starting points are specified
   assert_that(length(x_start) >= 2)
-  #assert that x_star is in ascending order
-  assert_that(all(diff(x_start)>0))
-
+  #sort starting abbisicca on an accending order
+  x_start <- sort(x_start)
+  
+  
   #number of starting points
   k_start <- length(x_start)
 
@@ -341,8 +342,9 @@ SamplePieceExp <- function(X,Z,H_norm,H_prime,Pcum){
   return(x_star)
 }
 
+#' Calculate probability of each segment
 
-#Calculate probability of each segment
+#' @export
 CalcProbBin <- function(X,Z,H,H_prime){
   #CalcProbBin calculates the probabilities of each segment of the exponential distribution.
   #Input:
@@ -378,8 +380,9 @@ CalcProbBin <- function(X,Z,H,H_prime){
   return(list(Pcum = Pcum, log_s = log_s, Ptot = Ptot))
 }
 
-#Accept or reject sample
-#Note: added H, H_prime, Z as parameters to function
+#' Accept or reject sample
+#' Note: added H, H_prime, Z as parameters to function#' 
+#' @export
 UpdateAccept <- function(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, length_accept ,eval_h ,eval_h_prime){
 
 
