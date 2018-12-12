@@ -1,6 +1,7 @@
 ##Test CalcProbBin function to generate cumulative probabilities
 #Generate inputs
 X <- rnorm(10)
+X <- sort(X)
 g <- function(x){
   sigma <- 1
   mu <- 0
@@ -25,12 +26,9 @@ Z <- append(Z,-Inf,0)
 Z <- append(Z,Inf,length(Z))
 
 Pcum <- CalcProbBin(X,Z,H,H_prime)$Pcum
-Pcum_check <- pnorm(Z[1])
+Pcum_check <- pnorm(Z[-1])
 all.equal(Pcum,Pcum_check,tolerance = 0.05)
   
-  
-return(list(Pcum = Pcum, log_s = log_s, Ptot = Ptot))
-
 
 
 ##Test UpdateAccept function
