@@ -16,7 +16,14 @@ check <- rnorm(n_samp)
 temp <-ars(g,n_samp,x_bound,x_start,sybolic_deriv = FALSE)
 p_value <- ks.test(temp,check)$p.value
 
-expect_gt(p_value,0.05)
+if (test_that("Success", {expect_gt(p_value,0.05)})==TRUE) 
+  {
+  print("Success. The ars function passes the Kolmogorov-Smirnov Test for N(0,1) function")
+} else {
+  print("Error")
+}
+
+
 
 ##Test for N(7,2) distribution
 
@@ -34,7 +41,12 @@ check <- rnorm(n_samp,mean = 7, sd = 2)
 temp <-ars(g,n_samp,x_bound,x_start,sybolic_deriv = FALSE)
 p_value <- ks.test(temp,check)$p.value
 
-expect_gt(p_value,0.05)
+if (test_that("Success", {expect_gt(p_value,0.05)})==TRUE) 
+{
+  print("Success. The ars function passes the Kolmogorov-Smirnov Test for N(7,2) function")
+} else {
+  print("Error")
+}
 
 
 #Test for Beta(1,3) distribution
@@ -52,7 +64,12 @@ check <- rbeta(n_samp,1,3)
 temp <-ars(g,n_samp,x_bound,x_start,sybolic_deriv = FALSE)
 p_value <- ks.test(temp,check)$p.value
 
-expect_gt(p_value,0.05)
+if (test_that("Success", {expect_gt(p_value,0.05)})==TRUE) 
+{
+  print("Success. The ars function passes the Kolmogorov-Smirnov Test for Beta(1,3) function")
+} else {
+  print("Error")
+}
 
 
 
@@ -72,7 +89,12 @@ check <- rgamma(n_samp,shape=2,rate=3)
 temp <-ars(g,n_samp,x_bound,x_start,sybolic_deriv = FALSE)
 p_value <- ks.test(temp,check)$p.value
 
-expect_gt(p_value,0.05)
+if (test_that("Success", {expect_gt(p_value,0.05)})==TRUE) 
+{
+  print("Success. The ars function passes the Kolmogorov-Smirnov Test for Gamma(2,3) function")
+} else {
+  print("Error")
+}
 
 
 #Test for Exponential(lambda = 5) distribution
@@ -89,5 +111,10 @@ check <- rexp(n_samp,rate = lambda)
 temp <-ars(g,n_samp,x_bound,x_start,sybolic_deriv = FALSE)
 p_value <- ks.test(temp,check)$p.value
 
-expect_gt(p_value,0.05)
+if (test_that("Success", {expect_gt(p_value,0.05)})==TRUE) 
+{
+  print("Success. The ars function passes the Kolmogorov-Smirnov Test for Exponential(5) function")
+} else {
+  print("Error")
+}
 

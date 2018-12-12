@@ -21,10 +21,12 @@ Z <- c()
 for (z_order in 1:length(X)-1) {
   Z[z_order] <- z(z_order)
 }
-#Z <- append(Z,-Inf,0)
-#Z <- append(Z,Inf,length(Z))
+Z <- append(Z,-Inf,0)
+Z <- append(Z,Inf,length(Z))
 
-#CalcProbBin <- function(X,Z,H,H_prime)
+Pcum <- CalcProbBin(X,Z,H,H_prime)$Pcum
+Pcum_check <- pnorm(Z[1])
+all.equal(Pcum,Pcum_check,tolerance = 0.05)
   
   
 return(list(Pcum = Pcum, log_s = log_s, Ptot = Ptot))
@@ -40,8 +42,20 @@ H_prime <- -1*X #h_prime(x) = -x
 Z <- c(-Inf,-1,1,Inf)
 P_cum <- c(1/6,1-1/6,1)
 H_norm <- c(0.04511176, 1/3, 0.04511176)
+x_star <- -2
+x_accept <- c()
+length_accept <- 1
+#standard normal distribution, h and h_prime functions
+eval_h <- function(x){
+  return(log(dnorm(x)))
+}
+eval_h_prime <- function(x){
+  #h = log(f) = -1/2*log(2*pi) - 1/2*(x)^2
+  #h_prime = deriv(log(f)) = - x
+  
+  return(-1*x)
+}
 
-UpdateAccept <- function(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, length_accept ,eval_h ,eval_h_prime)
+UpdateAccept(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, length_accept ,eval_h ,eval_h_prime)
 
-#
-return(list(X = X, Z = Z, H = H, H_prime = H_prime, H_norm = H_norm, P_cum = P_cum, x_accept = x_accept, k = length_accept))  
+#It is true that x_star is added to x_accept, and no update for X, H, and H_prime
