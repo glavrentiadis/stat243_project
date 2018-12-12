@@ -1,14 +1,6 @@
 #' Initialize .
 #' 
-#' @param x_bound Vector containing two elements: 
-#' (1) the lower bound of the domain of g, and (2) the upper bound.
-#' @param eval_h Function that evaluates function h=log(g) at point x
-#' @param eval_deriv_h Function that calcualtes the derivative of 
-#' function h at point x.
-#' @return Two points within the boundaries specified in \code{x_bound}. 
-#' If 
-#' @examples
-#' add(1, 1)
+
 #' add(10, 1)
 
 #Sample initial points if they are not given 
@@ -102,3 +94,8 @@ SampleXStart <- function(x_bound,eval_h,eval_deriv_h){
   return(out)
   
 }
+
+
+library(stringr)
+str_detect
+str_count

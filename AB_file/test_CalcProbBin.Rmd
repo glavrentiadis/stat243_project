@@ -150,7 +150,9 @@ CalcProbBin <- function(X,Z,H,H_prime){
 
 ```{r}
 #test_list <- rpois(50,lambda = 5)
-test_list <- rexp(50, rate=5)
+x_star=1
+
+X <- c(0,0.5,1,1.5)
 
 for (x_star in test_list) {
   update_accept(x_star,g,X,H,H_prime,Z)

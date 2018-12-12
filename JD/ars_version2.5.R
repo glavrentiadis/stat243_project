@@ -1,4 +1,42 @@
 
+#install.packages("devtools")
+library(devtools)
+setwd("/Users/jbunker7/Documents/GitHub/stat243_project/Package")
+#usethis::create_package("Package")
+
+#' @title Documentation for ars() function
+#' @name ARS
+#' @param g (Required) Function containing the target probability density function (pdf).
+#' @param n_samp (Required) An integer representing the desired sample size.
+#' @param x_bound (Required) A vector containing: (1) the lower bound of the domain of \code{g}, 
+#' and (2) the upper bound.
+#' @param x_start (Optional) A vector containing the initial abscissae. 
+#' If left empty, two points will be chosen by the \code{ars()} function. Default: empty.
+#' @param symbolic_deriv (Optional) A logical vector indicating whether to calculate 
+#' derivatives symbolically (\code{symbolic_deriv=TRUE}), or numerically (\code{symbolic_deriv=FALSE}). 
+#' Default: TRUE.
+#' @return A vector of \code{n_samp} accepted points based on \code{g}.
+#' @examples
+#' Normal distribution (sample of 50 points, no x_start given):
+#' g <- function(x,mu=0,sigma=1){
+#'   val <- 1/sqrt(2*pi*sigma^2)*exp(-(x-mu)^2/(2*sigma^2))
+#' }
+#' ars(g,n_samp=5,x_bound=c(-Inf,Inf))
+#' 
+#' 
+#' Gamma distribution (sample of 100 points, no x_start given):
+#' g <- function(x,alpha=2,beta=1){
+#'   val <- beta^alpha/gamma(alpha)*x^(alpha-1)*exp(-beta*x)
+#' }
+#' ars(g,n_samp=100,x_bound=c(0,Inf))
+#' 
+#' 
+#' Beta distribution (sample of 20 points, x_start given):
+#' g <- function(x,alpha=2,beta=1){
+#'   val <- beta^alpha/gamma(alpha)*x^(alpha-1)*exp(-beta*x)
+#' }
+#' ars(g,n_samp=20,x_bound=c(0,Inf),x_start=c(0.25,0.75))
+
 ars <- function(g,n_samp,x_bound,x_start = c(),sybolic_deriv = FALSE){
   
   #load libraries
@@ -27,15 +65,9 @@ ars <- function(g,n_samp,x_bound,x_start = c(),sybolic_deriv = FALSE){
   X <- out$X
   Z <- out$Z
   H <- out$H
-  print(X)
   H_prime <- out$H_prime
   H_norm <- out$H_norm
   P_cum <- out$Pcum
-  
-  #print(X)
-  #print(Z)
-  #print(H)
-  #print(H_prime)
 
 
   #Sampling and updating when needed
@@ -180,12 +212,6 @@ SampleXStart <- function(x_bound,eval_h,eval_deriv_h){
   while (flag_bound_req == FALSE){
     samp <- rtruncnorm(1, a=x_bound[1], b=upBd_samp, mean = mean_samp, sd = std_samp)
     hPrime <- eval_deriv_h(samp)
-    print("samp & hPrime (lower): ")
-    print(samp)
-    print(hPrime)
-    print("mean & sd (lower): ")
-    print(mean_samp)
-    print(std_samp)
     if (!is.infinite(x_bound[1]) || hPrime > 0){
       flag_bound_req <- TRUE #boundary requirement is satisfied
       x_start[1] <- samp
@@ -202,16 +228,9 @@ SampleXStart <- function(x_bound,eval_h,eval_deriv_h){
   flag_bound_req <- FALSE
   mean_samp <- 0
   std_samp <- 1
-  ct <- 0
   while (flag_bound_req == FALSE){
     samp <- rtruncnorm(1, a=lowBd_samp, b=x_bound[2], mean = mean_samp, sd = std_samp)
     hPrime <- eval_deriv_h(samp)
-    print("samp & hPrime (upper): ")
-    print(samp)
-    print(hPrime)
-    print("mean & sd (upper): ")
-    print(mean_samp)
-    print(std_samp)
     if (!is.infinite(x_bound[2]) || hPrime < 0){
       flag_bound_req <- TRUE #boundary requirement is satisfied
       x_start[2] <- samp
@@ -222,7 +241,6 @@ SampleXStart <- function(x_bound,eval_h,eval_deriv_h){
       std_samp <- std_samp*offset_val
       lowBd_samp <- samp
     }
-    ct <- ct +1
   }
   
   #sort starting points in acceding order
@@ -272,16 +290,6 @@ SamplePieceExp <- function(X,Z,H_norm,H_prime,Pcum){
 
   #sample x_star
   x_star <- 1/b_coef*log(DP*b_coef*exp(-a_coef)+exp(b_coef*Z[i_bin]))
-  #print(x_star)
-  if (is.nan(x_star) || is.na(x_star)){
-    print(paste0("b_coef: ",b_coef))
-    print(paste0("DP: ",DP))
-    print(paste0("exp(-a_coef: ",-a_coef))
-  } else if (!(x_star<= 200 & x_star>=0)){
-    print(paste0("b_coef: ",b_coef))
-    print(paste0("DP: ",DP))
-    print(paste0("exp(-a_coef: ",-a_coef))
-  }
   
   return(x_star)
 }
@@ -438,4 +446,6 @@ UpdateAccept <- function(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, len
   
 }
 
-
+devtools::document()
+install("Package")
+?.
