@@ -1,11 +1,11 @@
 getwd()
 
-setwd("./ars")
-document()
-
-
 library(devtools)
+
+setwd("./ars")
 devtools::document()
+
+
 
 setwd("..")
 install("ars")

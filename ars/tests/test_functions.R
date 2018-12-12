@@ -100,30 +100,6 @@ test_that("Kolmogorov-Smirnov Test (Gamma(2,3))", {
   expect_gt(p_value,0.05)
 })
 
-
-context("Testing ars function with Kolmogorov-Smirnov Test Exponential(lambda = 5)")
-
-test_that("Kolmogorov-Smirnov Test (Exponential(lambda = 5))", {
-  #distribution to test
-  lambda <- 5
-  g <- function(x) {
-    pi*lambda*exp(-lambda*x)
-  }
-
-  x_bound = c(0,Inf)
-  n_samp = 10000
-  x_start = c(0.5,3.5)
-  check <- rexp(n_samp,rate = lambda)
-
-  rand_samp <-ars(g,n_samp,x_bound,x_start,sybolic_deriv = FALSE)
-
-  #perform Kolmogorov-Smirnov test
-  p_value <- ks.test(rand_samp,check)$p.value
-
-  expect_gt(p_value,0.05)
-})
-
-
 #Testing for auxilary functions
 
 
