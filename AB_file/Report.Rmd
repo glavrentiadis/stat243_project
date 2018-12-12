@@ -6,17 +6,20 @@ output: pdf_document
 ---
 
 #I. Purpose 
-This project aims to apply the adaptive rejection sampling method described in Gilks et al. (1992). The main function ars generates sample from any univariate log-concave probability density function.  In adaptive sampling, the envelop and squeezing functions are not determined in advance, but are updated according to the new element that are included in the sample.
+This project aims to apply the adaptive rejection sampling method described in Gilks et al. (1992). The main function \textit{ars()} generates a sample from any univariate log-concave probability density function. In nonadaptive rejection sampling, the envelope and squeezing functions, $g_l(x)$ and $g_u(x)$, are determined in advance. Under the adaptive rejection sampling framework, these functions are instead updated iteratively as points are sampled.
 
 #II. Contributions of members
 
-Responsibility to write auxiliary functions
+Each team member was primarily responsible for one of the three steps mentioned in Gilks et al. (1992): (1) the initialization step, (2) the sampling step, (3) the updating step. Summary of contributions:
+\begin{itemize}
 
-Bunker, JD: Generate the initial function to sample starting points. Make an improvement for the efficiency of the Update_accept function and test the log-concavity of the given function.
+\item Bunker, JD: Primarily responsible for the initialization step where the . If the user does not provide pointswhich samples the starting points. The \textit{initial()} function . Other contributions include improving the computational efficiency of the \textit{Update_accept()} function, and testing the log-concavity of the given function.
 
-Lavrentiadis, Grigorios: Piecewise exponential sampling to generate value x* based on calculated probabilities.  Assemble auxiliary functions to generate the comprehensive ars function.
+\item Lavrentiadis, Grigorios: Primarily responsible for the sampling step, which generates the value $x^*$ from a piecewise exponential distribution, $s_k(x)$. Assemble the auxiliary functions into the comprehensive \textit{ars()} function.
 
-Bui, Anh: Update_accept function to decide whether x* is accepted or rejected in the final sample.  Update the envelop and squeezing functions accordingly.  Write the report and the formal testing.
+\item Bui, Anh: Update_accept function to decide whether $x^*$ is accepted or rejected in the final sample.  Update the envelop and squeezing functions accordingly.  Write the report and the formal testing.
+
+\end{itemize}
 
 #III.  Theoretical background for rejection sampling
 

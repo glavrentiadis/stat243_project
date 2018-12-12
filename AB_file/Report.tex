@@ -1,0 +1,264 @@
+\documentclass[]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+  \ifxetex
+    \usepackage{mathspec}
+  \else
+    \usepackage{fontspec}
+  \fi
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\hypersetup{unicode=true,
+            pdftitle={Final Project 2018 - STAT243},
+            pdfauthor={Bunker, JD; Bui, Anh; Lavrentiadis, Grigorios},
+            pdfborder={0 0 0},
+            breaklinks=true}
+\urlstyle{same}  % don't use monospace font for urls
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+\IfFileExists{parskip.sty}{%
+\usepackage{parskip}
+}{% else
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% Redefines (sub)paragraphs to behave more like sections
+\ifx\paragraph\undefined\else
+\let\oldparagraph\paragraph
+\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+\let\oldsubparagraph\subparagraph
+\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+
+%%% Use protect on footnotes to avoid problems with footnotes in titles
+\let\rmarkdownfootnote\footnote%
+\def\footnote{\protect\rmarkdownfootnote}
+
+%%% Change title format to be more compact
+\usepackage{titling}
+
+% Create subtitle command for use in maketitle
+\newcommand{\subtitle}[1]{
+  \posttitle{
+    \begin{center}\large#1\end{center}
+    }
+}
+
+\setlength{\droptitle}{-2em}
+
+  \title{Final Project 2018 - STAT243}
+    \pretitle{\vspace{\droptitle}\centering\huge}
+  \posttitle{\par}
+    \author{Bunker, JD; Bui, Anh; Lavrentiadis, Grigorios}
+    \preauthor{\centering\large\emph}
+  \postauthor{\par}
+      \predate{\centering\large\emph}
+  \postdate{\par}
+    \date{December 10, 2018}
+
+
+\begin{document}
+\maketitle
+
+\section{I. Purpose}\label{i.-purpose}
+
+This project aims to apply the adaptive rejection sampling method
+described in Gilks et al. (1992). The main function \textit{ars()}
+generates a sample from any univariate log-concave probability density
+function. In nonadaptive rejection sampling, the envelope and squeezing
+functions, \(g_l(x)\) and \(g_u(x)\), are determined in advance. Under
+the adaptive rejection sampling framework, these functions are instead
+updated iteratively as points are sampled.
+
+\section{II. Contributions of
+members}\label{ii.-contributions-of-members}
+
+Each team member was primarily responsible for one of the three steps
+mentioned in Gilks et al. (1992): (1) the initialization step, (2) the
+sampling step, (3) the updating step. Summary of contributions:
+
+\begin{itemize}
+
+\item Bunker, JD: Primarily responsible for the initialization step where the . If the user does not provide pointswhich samples the starting points. The \textit{initial()} function . Other contributions include improving the computational efficiency of the \textit{Update_accept()} function, and testing the log-concavity of the given function.
+
+\item Lavrentiadis, Grigorios: Primarily responsible for the sampling step, which generates the value $x^*$ from a piecewise exponential distribution, $s_k(x)$. Assemble the auxiliary functions into the comprehensive \textit{ars()} function.
+
+\item Bui, Anh: Update_accept function to decide whether $x^*$ is accepted or rejected in the final sample.  Update the envelop and squeezing functions accordingly.  Write the report and the formal testing.
+
+\end{itemize}
+
+\section{III. Theoretical background for rejection
+sampling}\label{iii.-theoretical-background-for-rejection-sampling}
+
+Assume f(x) is an univariate log-concave probability density function.
+We sample from g(x), which is a scaling of function f(x). Assuming that
+we have the envelop function \(g_{u}(x)\) and the squeezing function
+\(g_{l}(x)\) of g(x).
+
+Let Y \textasciitilde{} Unif(0,\(g_{u}(x)\)) and where w
+\textasciitilde{} Unif(0,1). We reject \(x*\) if
+
+\[
+Y < g(x*) 
+\] \[
+\frac{Y}{g_{u}(x)} < \frac{g(x)}{g_{u}(x)}
+\] \[
+w < \frac{g(x)}{g_{u}(x)} 
+\]
+
+The paper gives the algorithm of adaptive rejection sampling when
+working with the log of g(x), \(g_{l}(x)\), and \(g_{u}\), which will be
+discussed more in details in the auxiliary functions section.
+
+\section{IV. Auxiliary functions}\label{iv.-auxiliary-functions}
+
+\subsection{1. Initial function}\label{initial-function}
+
+\subsection{2. Generate x* from piecewise exponential
+probabilities}\label{generate-x-from-piecewise-exponential-probabilities}
+
+The \texttt{SamplePieceExp} function draws samples \(x^*\) out of a
+piece-wise exponential distribution using the inverse sampling approach.
+Initially a \(Pinv\) sample is drawn from a \(0\) to \(1\) uniform
+distribution that corresponds to the cumulative probability of the
+random sample \(x^*\) To find the bin at which \(x^*\) belongs, \(Pinv\)
+is compared with the cumulative probability of each bin. \(x^*\) belongs
+to the bin whose cumulative probability (\(Pcum_i\)) is the smallest out
+of all bins that have \(Pcum\) larger than \(Pinv\). \(x^*\) is
+estimated by solving the following cumulative probability equation,
+where \(z_0\) is the left bound of the distribution and \(P_j\) is the
+probability of bin \(j\).
+
+\[
+P_{inv} = \int^{x^*}_{z_0} s(x) dx = \sum^i_{j=1}P_j + \int^{x^*}_{z_i} s(x) dx
+\]
+
+\(DP\) equals to the probability \(P(z_i > x > x^*)\) where \(z_i\) is
+the lower bound of the bin \(i\) where \(x^*\) belongs
+
+\[
+DP = \int^{x^*}_{z_i} e^{h(x_j) + (x-x_j) h'(x_j)} dx 
+\]
+
+To simplify the equation we define: \(a = h(x_j)-x_j h'(x_j)\) and
+\(b = h'(x_j)\) From this equation, \(x^*\) equals to:
+
+\[
+x^* = \frac{1}{b} log(DP~b~e^{-a} +  e^{b~z_i})
+\]
+
+\subsection{3. Update accept function}\label{update-accept-function}
+
+\textbf{Algorithm}
+
+Inputs: w \textasciitilde{} Unif(0,1) \newline
+\[l_{k}(x^{*}) = log(g_{l}(x^{*}))\]
+\[u_{k}(x^{*}) = log(g_{u}(x^{*}))\] \[h(x^{*}) = log(g(x^{*}))\]
+\[s_{k}(x) = exp(u_{k}(x))/\left(\int_{D} u_{k}(x') \; dx'\right) = g_{u}(x)/\left(\int_{D} g_{u}(x') \; dx'\right)\]
+
+The lower bound of h(x) is \(l_{k}(x)\), which connects the values of
+function h on abscissaes. The function of \(l_{k}(x)\) between two
+consecutive abscissaes \(x_{j}\) and \(x_{j+1}\) is
+\[l_{k}(x) = \frac{(x_{j+1} - x)h(x_{j}) + (x - x_{j})h(x_{j+1})}{x_{j+1} - x_{j}}\]
+Let X be the domain of abscissaes, H be the domain of the realized
+function H at abscissaes, H\_prime be the domain of the realized first
+derivative of function H at abscissaes, Z be the domain of intersection
+of tangent lines at abscissaes.
+
+\[h'(x) = \frac{dlog(g(x))}{dx} = \frac{g'(x)}{g(x)}\] The intersection
+of the tangents at \(x_{j}\) and \(x_{j+1}\) is
+
+\[z_j = \frac{h(x_{j+1})-h(x_{j}) - x_{j+1}h'(x_{j+1})+x_{j}h'(x_{j})}{h'(x_{j})-h'(x_{j+1})}\]
+Then for x between \(z_{j-1}\) and \(z_{j}\)
+\[u_{k}(x) = h(x_{j}) + (x-x_{j})h'(x_{j})\]
+
+\textbf{Step 1}: If \(w < exp(l_{k}(x^{*}) - u_{k}(x^{*}))\) \newline
+- Accept \(x^{*}\) when the condition is satisfied. Draw another
+\(x^{*}\) from \(s_{k}(x)\) \newline
+- Reject \(x^{*}\) when the condition is not satisfied.
+
+\textbf{Step 2}: These two procedures can be done in parallel. \newline
+- Evaluate \(h(x^{*}), h'(x^{*})\). Update
+\(l_{k}(x), u_{k}(x), s_{k}(x)\). X includes \(x^{*}\) as an element.
+\newline
+- Accept \(x^{*}\) if \(w < exp(h(x^{*}) - u_{k}(x^{*}))\). Otherwise,
+reject.
+
+Since the h(x), \(l_{k}(x)\), \(u_{k}(x)\) can be generated from vectors
+H, H\_prime, and Z, we improve the efficiency of the calculation by
+efficiently updating H, H\_prime, and Z. We append the vectors
+associated with the new abscissae x* and append to the existing vectors.
+
+Multiple testing are generated based on values that \(x^*\) can take.
+For example, if \(x^*\) is out of the domain of X,
+\(l_{k}(x^{*})=-Inf\). If \(x^*\) is at the minimum value X{[}1{]} and
+maximum value X{[}n{]} in the domain of X, \(l_{k}(x^{*})\) will take
+the values on the lines connecting X{[}1{]} and X{[}2{]}, and connecting
+X{[}n-1{]} and X{[}n{]} respectively. Vector Z is also generated for the
+case when H(x) is a linear function of x (for example, the exponential
+distribution)
+
+\section{V. Testing}\label{v.-testing}
+
+\subsection{1. Formal tests for ars
+function}\label{formal-tests-for-ars-function}
+
+The ars function passes the test for the following distributions in the
+testing phase using the Kolmogorov-Smirnov Test: \newline
+- Normal distribution with mean = 0 and standard deviation = 1 \newline
+- Normal distribution with mean = 7 and standard deviation = 2 \newline
+- Beta(1,3) distribution \newline
+- Gamma(2,3) distribution \newline
+- Exponential(5) distribution \newline
+
+\subsection{2. Tests for auxiliary
+functions}\label{tests-for-auxiliary-functions}
+
+\subsubsection{a. Test CalcProbBin
+function}\label{a.-test-calcprobbin-function}
+
+The CalcProbBin function generates the cumulative probability based on
+elements in vector Z (i.e.~the intersection of the tangent lines of
+abscissaes).Based on vector Z under the N(0,1) density, we test whether
+the calculated cumulative probabilities are (nearly) equal to the
+cumulative probability using ``pnorm(Z)''.
+
+\subsubsection{b. Test UpdateAccept
+function}\label{b.-test-updateaccept-function}
+
+The UpdateAccept function decides whether to accept \(x*\) or not based
+on designed conditions. We test this function by checking that if \(x*\)
+is included in X, \(x*\) is accepted and included in the x\_accept
+vector, as well as there is no update, i.e.~H and H\_prime stay the
+same.
+
+
+\end{document}
