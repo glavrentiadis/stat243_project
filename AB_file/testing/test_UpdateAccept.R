@@ -3,6 +3,7 @@
 
 library(testthat)
 
+
 #load ars function
 #function_file <- 'ars_version3.R'
 #source(file.path('..',function_file))
@@ -32,8 +33,10 @@ H_new <- UpdateAccept(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, length
 H_prime_new <- UpdateAccept(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, length_accept ,eval_h ,eval_h_prime)$H_prime
 X_new <- UpdateAccept(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, length_accept ,eval_h ,eval_h_prime)$X
 x_accept_new <- UpdateAccept(x_star, X ,Z , H, H_prime, H_norm, P_cum, x_accept, length_accept ,eval_h ,eval_h_prime)$x_accept
+
 context("Testing UpdateAccept auxiliary function")
 test_that("UpdateAccept auxiliary function", {
+
   expect_equal(H,H_new)
   expect_equal(H_prime,H_prime_new)
   expect_equal(X,X_new)
