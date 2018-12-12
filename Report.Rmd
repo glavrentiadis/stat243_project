@@ -42,9 +42,10 @@ In non-adaptive sampling, the $g_l(x)$ and $g_u(x)$ functions are invariant thro
 
 The function `CheckXStart` test that the starting points specified by the user satisfy the requirements if the sampling distribution is unbounded and then creates the arrays that are used for the adaptive sampling
 These requirements of the starting points are: 
-* If the sampling distribution is unbounded to the left ($-Inf$ is the lower limit) the derivative of the smallest sampling point must be negative
-* If the sampling distribution is unbounded to the right ($+Inf$ is the upper limit) the derivative of the largest sampling point must be positive
-
+\begin{itemize}
+\item If the sampling distribution is unbounded to the left ($-Inf$ is the lower limit) the derivative of the smallest sampling point must be negative
+\item If the sampling distribution is unbounded to the right ($+Inf$ is the upper limit) the derivative of the largest sampling point must be positive
+\end{itemize}
 If the user doesn't specify starting points the `SampleXStart` function is used to sample points that searches for points that satisfy the previously mentioned requirements however, finding such points is not guaranteed. 
 At the first stage `SampleXStart` samples starting points out of a standard normal distribution if the initial points doesn't satisfy the requirements it truncates the lower or upper bound of the normal distribution based on the sign of the of the first derivative at $x^*$.
 For example, if it is required to have a point with a positive first derivative (i.e the sampling distribution is unbounded to left) and the first derivative at the current point $x^*$ is negative, the upper bound is updated to $x^*$ so that the next point will be sampled out of the $[- \infty ,x^*]$ range. 
